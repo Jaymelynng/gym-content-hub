@@ -290,6 +290,186 @@ export type Database = {
           },
         ]
       }
+      content_formats: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          dimensions: string | null
+          duration: string | null
+          examples: Json | null
+          format_key: string
+          format_type: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          production_tips: Json | null
+          setup_planning: Json | null
+          sort_order: number | null
+          thumbnail_url: string | null
+          title: string
+          total_required: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          dimensions?: string | null
+          duration?: string | null
+          examples?: Json | null
+          format_key: string
+          format_type?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          production_tips?: Json | null
+          setup_planning?: Json | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          title: string
+          total_required?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          dimensions?: string | null
+          duration?: string | null
+          examples?: Json | null
+          format_key?: string
+          format_type?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          production_tips?: Json | null
+          setup_planning?: Json | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          total_required?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      format_progress: {
+        Row: {
+          calculated_at: string | null
+          completed_count: number | null
+          format_id: string | null
+          gym_id: string | null
+          id: string
+          last_submission_date: string | null
+          pending_count: number | null
+          revision_count: number | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          completed_count?: number | null
+          format_id?: string | null
+          gym_id?: string | null
+          id?: string
+          last_submission_date?: string | null
+          pending_count?: number | null
+          revision_count?: number | null
+        }
+        Update: {
+          calculated_at?: string | null
+          completed_count?: number | null
+          format_id?: string | null
+          gym_id?: string | null
+          id?: string
+          last_submission_date?: string | null
+          pending_count?: number | null
+          revision_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "format_progress_format_id_fkey"
+            columns: ["format_id"]
+            isOneToOne: false
+            referencedRelation: "content_formats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "format_progress_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      format_submissions: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          feedback_notes: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          format_id: string | null
+          gym_id: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submission_notes: string | null
+          submitted_at: string | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          feedback_notes?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          format_id?: string | null
+          gym_id?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submission_notes?: string | null
+          submitted_at?: string | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          feedback_notes?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          format_id?: string | null
+          gym_id?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submission_notes?: string | null
+          submitted_at?: string | null
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "format_submissions_format_id_fkey"
+            columns: ["format_id"]
+            isOneToOne: false
+            referencedRelation: "content_formats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "format_submissions_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gym_profiles: {
         Row: {
           active: boolean | null

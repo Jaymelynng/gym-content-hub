@@ -1,242 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Upload, 
-  Play, 
-  Calendar,
-  Clock,
-  MessageCircle
-} from 'lucide-react';
-import { AssignmentModal } from '@/components/AssignmentModal';
+import { Camera, Video, Image as ImageIcon, Zap, Play, Upload, Clock } from 'lucide-react';
+import { ContentFormatModal } from '@/components/ContentFormatModal';
+import { useContentFormats } from '@/hooks/useContentFormats';
 
-interface Assignment {
-  id: number;
-  title: string;
-  due_date: string;
-  status: string;
-  priority: string;
-  clips_required: number;
-  clips_uploaded: number;
-}
+const formatIcons = {
+  photo: Camera,
+  video: Video,
+  carousel: ImageIcon,
+  story: Play,
+  animated: Zap,
+};
 
-const ContentLibrary = () => {
-  const { currentGym } = useAuth();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
-  const [loading, setLoading] = useState(true);
+const formatThumbnails = {
+  'static-photo': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+  'carousel-images': 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400&h=300&fit=crop',
+  'video-reel': 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=400&h=300&fit=crop',
+  'story': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+  'animated-image': 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
+};
 
-  const loadAssignments = async () => {
-    if (!currentGym) return;
+function ContentLibrary() {
+  const [selectedFormat, setSelectedFormat] = useState<any>(null);
+  const { data: formats, isLoading } = useContentFormats();
 
-    try {
-      const { data, error } = await supabase
-        .from('assignment_distributions')
-        .select(`
-          id,
-          custom_title,
-          due_date,
-          status,
-          priority_override,
-          assignment_templates (
-            title,
-            priority,
-            clips_required
-          )
-        `)
-        .eq('assigned_to_gym_id', currentGym.id)
-        .order('due_date', { ascending: true });
-
-      if (error) {
-        console.error('Error loading assignments:', error);
-        return;
-      }
-
-      // Get upload counts for each assignment
-      const assignmentsWithProgress = await Promise.all(
-        (data || []).map(async (assignment) => {
-          const { count } = await supabase
-            .from('assignment_submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('assignment_id', assignment.id)
-            .eq('gym_id', currentGym.id);
-
-          return {
-            id: assignment.id,
-            title: assignment.custom_title || assignment.assignment_templates?.title || 'Content Assignment',
-            due_date: assignment.due_date,
-            status: assignment.status,
-            priority: assignment.priority_override || assignment.assignment_templates?.priority || 'medium',
-            clips_required: assignment.assignment_templates?.clips_required || 4,
-            clips_uploaded: count || 0,
-          };
-        })
-      );
-
-      setAssignments(assignmentsWithProgress);
-    } catch (error) {
-      console.error('Error loading assignments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAssignments();
-  }, [currentGym]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'destructive';
-      case 'high':
-        return 'default';
-      case 'medium':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getProgressColor = (uploaded: number, required: number) => {
-    const percentage = (uploaded / required) * 100;
-    if (percentage >= 100) return 'bg-green-500';
-    if (percentage >= 50) return 'bg-yellow-500';
-    return 'bg-blue-500';
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-32 bg-muted rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-muted-foreground">Loading content formats...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Content Library</h1>
-          <p className="text-muted-foreground">
-            {currentGym?.gym_name} - {currentGym?.gym_location}
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Content Library</h1>
+        <p className="text-muted-foreground">
+          Create professional social media content with our guided format library
+        </p>
       </div>
 
-      {/* Assignments Grid */}
-      {assignments.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-            <Upload className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-medium mb-2">No assignments yet</h3>
-          <p className="text-muted-foreground">New content assignments will appear here</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {assignments.map((assignment) => (
-            <Card 
-              key={assignment.id}
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => setSelectedAssignment(assignment)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg line-clamp-2">
-                    {assignment.title}
-                  </CardTitle>
-                  <Badge variant={getPriorityColor(assignment.priority)}>
-                    {assignment.priority}
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Progress */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">
-                      {assignment.clips_uploaded}/{assignment.clips_required}
-                    </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {formats?.map((format) => {
+          const IconComponent = formatIcons[format.format_type];
+          const thumbnail = formatThumbnails[format.format_key as keyof typeof formatThumbnails];
+          
+          return (
+            <Card key={format.id} className="cursor-pointer hover:shadow-lg transition-all group overflow-hidden">
+              <div className="aspect-video bg-muted relative overflow-hidden">
+                <img 
+                  src={thumbnail}
+                  alt={format.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-3 left-3 text-white">
+                  <div className="flex items-center gap-2 mb-1">
+                    <IconComponent className="h-4 w-4" />
+                    <Badge variant="secondary" className="text-xs bg-white/20 text-white border-white/20">
+                      {format.format_type.charAt(0).toUpperCase() + format.format_type.slice(1)}
+                    </Badge>
                   </div>
-                  <Progress 
-                    value={(assignment.clips_uploaded / assignment.clips_required) * 100}
-                    className="h-2"
-                    style={{
-                      background: `hsl(var(--muted))`,
-                    }}
-                  />
+                  <h3 className="font-semibold text-lg">{format.title}</h3>
                 </div>
+              </div>
+              
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {format.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {format.dimensions}
+                    </span>
+                    {format.duration && (
+                      <span>{format.duration}</span>
+                    )}
+                  </div>
 
-                {/* Due Date */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>Due {formatDate(assignment.due_date)}</span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedAssignment(assignment);
-                    }}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Clips
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle view/preview action
-                    }}
-                  >
-                    <Play className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">
+                      <span className="font-medium">{format.total_required}</span>
+                      <span className="text-muted-foreground"> required</span>
+                    </div>
+                    <Button 
+                      size="sm"
+                      onClick={() => setSelectedFormat(format)}
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      Create
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {/* Assignment Modal */}
-      {selectedAssignment && (
-        <AssignmentModal
-          assignment={selectedAssignment}
-          isOpen={!!selectedAssignment}
-          onClose={() => setSelectedAssignment(null)}
-          onUploadComplete={loadAssignments}
+      {selectedFormat && (
+        <ContentFormatModal
+          format={selectedFormat}
+          isOpen={!!selectedFormat}
+          onClose={() => setSelectedFormat(null)}
+          onUploadComplete={() => {
+            setSelectedFormat(null);
+          }}
         />
       )}
     </div>
   );
-};
+}
 
 export default ContentLibrary;
