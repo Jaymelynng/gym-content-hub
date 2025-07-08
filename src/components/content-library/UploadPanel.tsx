@@ -57,45 +57,23 @@ export function UploadPanel({ selectedFormat, uploads }: UploadPanelProps) {
                 </div>
                 <p className="text-xs text-muted-foreground">{upload.description}</p>
                 
-                {/* Visual Upload Area */}
-                <div className="border-2 border-dashed border-muted rounded-lg p-4 min-h-[120px] bg-muted/20">
+                {/* Smart Upload Area */}
+                <div className="border-2 border-dashed border-muted rounded-lg p-4 min-h-[120px] bg-muted/20 hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer group">
                   {upload.uploaded ? (
                     <div className="flex flex-col items-center justify-center h-full">
-                      <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
+                      <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mb-2">
+                        <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                       </div>
-                      <span className="text-xs text-green-600 font-medium">Content Added</span>
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">Content Added</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full">
-                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-3">
-                        <Plus className="h-6 w-6 text-muted-foreground" />
+                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors">
+                        <Upload className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
-                      <div className="space-y-2 w-full">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="w-full justify-start h-7 text-xs"
-                        >
-                          <FileText className="h-3 w-3 mr-2" />
-                          Add Text
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="w-full justify-start h-7 text-xs"
-                        >
-                          <ImageIcon className="h-3 w-3 mr-2" />
-                          Upload Image
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="w-full justify-start h-7 text-xs"
-                        >
-                          <Video className="h-3 w-3 mr-2" />
-                          Upload Video
-                        </Button>
+                      <div className="text-center space-y-1">
+                        <p className="text-xs font-medium text-foreground">Upload Files or Drop Here</p>
+                        <p className="text-xs text-muted-foreground">Images, videos, or text files</p>
                       </div>
                     </div>
                   )}
