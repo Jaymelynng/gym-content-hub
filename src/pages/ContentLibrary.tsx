@@ -1,117 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Video, Image, CheckCircle, Target, BookOpen, Upload, Clock } from 'lucide-react';
+import { Camera, Video, Image, CheckCircle, Target, BookOpen, Upload, Clock, Layers, Zap } from 'lucide-react';
+import { useContentFormats } from '@/hooks/useContentFormats';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Content formats data
-const contentFormats = [
-  {
-    id: 'static-photo',
-    title: 'Static Photo',
-    description: 'Single high-quality images',
-    icon: Camera,
-    uploaded: 3,
-    total: 12,
-    progress: 25,
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200'
-  },
-  {
-    id: 'video-reel',
-    title: 'Video Reel',
-    description: 'Short-form vertical videos',
-    icon: Video,
-    uploaded: 1,
-    total: 15,
-    progress: 7,
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200'
-  },
-  {
-    id: 'carousel-images',
-    title: 'Carousel Images',
-    description: 'Multi-image posts',
-    icon: Image,
-    uploaded: 0,
-    total: 8,
-    progress: 0,
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200'
-  }
-];
+// Icon mapping for format types
+const iconMap = {
+  photo: Camera,
+  video: Video,
+  carousel: Layers,
+  story: Clock,
+  animated: Zap,
+};
 
-// Sample content for each format
-const formatContent = {
-  'static-photo': {
-    setupPlanning: [
-      'Find good natural lighting near a window',
-      'Clear the background of any distractions',
-      'Set up your phone at eye level using a tripod',
-      'Have your workout clothes and props ready',
-      'Check your hair and outfit before shooting'
-    ],
-    productionTips: [
-      'Smile naturally and look confident',
-      'Take multiple shots from different angles',
-      'Use the rule of thirds for composition',
-      'Keep your brand colors consistent',
-      'Engage with the camera like talking to a friend'
-    ],
-    examples: [
-      'Workout progress selfie with motivational quote',
-      'Healthy meal prep showcase with recipe tips',
-      'Exercise demonstration with form cues',
-      'Before/after transformation with success story'
-    ]
-  },
-  'video-reel': {
-    setupPlanning: [
-      'Plan your 15-30 second story arc',
-      'Set up good lighting and audio recording',
-      'Practice your movements and transitions',
-      'Prepare props and equipment needed',
-      'Choose engaging background music'
-    ],
-    productionTips: [
-      'Hook viewers in the first 3 seconds',
-      'Use jump cuts to maintain high energy',
-      'Include captions for accessibility',
-      'Plan for vertical viewing (phones)',
-      'End with clear call-to-action'
-    ],
-    examples: [
-      'Quick workout routine with progression',
-      'Equipment setup and exercise demonstration',
-      'Before/after transformation timelapse',
-      'Behind-the-scenes gym preparation'
-    ]
-  },
-  'carousel-images': {
-    setupPlanning: [
-      'Plan the sequence of 2-10 images',
-      'Ensure consistent lighting across all photos',
-      'Maintain the same aspect ratio',
-      'Create a cohesive story flow',
-      'Consider the swipe progression'
-    ],
-    productionTips: [
-      'Use consistent visual style across images',
-      'Make the first image attention-grabbing',
-      'Include varied content types',
-      'Add text overlay if needed',
-      'Test the flow by swiping through'
-    ],
-    examples: [
-      'Step-by-step exercise progression',
-      'Before, during, after transformation',
-      'Multiple angle equipment showcase',
-      'Recipe preparation stages'
-    ]
-  }
+const bgColorMap = {
+  photo: 'bg-blue-50',
+  video: 'bg-green-50',
+  carousel: 'bg-purple-50',
+  story: 'bg-orange-50',
+  animated: 'bg-pink-50',
 };
 
 const uploadRequirements = [
@@ -121,21 +33,104 @@ const uploadRequirements = [
   { id: 4, title: 'Call to Action', description: 'Engagement driver', uploaded: false }
 ];
 
+// Helper function to get format progress (could be enhanced with real data)
+function getFormatProgress(formatId: string, totalRequired: number) {
+  // In production, this would use the useFormatProgress hook
+  // const { data: progress } = useFormatProgress(formatId);
+  // const completed = progress?.completed_count || 0;
+  
+  const completed = 0; // Placeholder
+  const progressPercentage = totalRequired > 0 ? Math.round((completed / totalRequired) * 100) : 0;
+  
+  return {
+    uploaded: completed,
+    total: totalRequired,
+    progress: progressPercentage
+  };
+}
+
 function ContentLibrary() {
-  const [selectedFormatId, setSelectedFormatId] = useState('static-photo');
+  const [selectedFormatId, setSelectedFormatId] = useState<string>('');
   const [activeTab, setActiveTab] = useState('setup');
   const { currentGym } = useAuth();
   
+  const { data: contentFormats = [], isLoading } = useContentFormats();
+  
+  // Set default selected format when data loads
+  useEffect(() => {
+    if (!selectedFormatId && contentFormats.length > 0) {
+      setSelectedFormatId(contentFormats[0].id);
+    }
+  }, [contentFormats, selectedFormatId]);
+  
+  if (isLoading) {
+    return (
+      <div className="h-screen flex flex-col">
+        <div className="flex-shrink-0 px-6 py-4 border-b bg-background">
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="flex-1 grid grid-cols-12 gap-0 overflow-hidden">
+          <div className="col-span-2 border-r bg-background p-4">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <Skeleton className="h-24 w-full mb-4" />
+            {Array(3).fill(0).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full mb-3" />
+            ))}
+          </div>
+          <div className="col-span-7 bg-background p-4">
+            <Skeleton className="h-8 w-48 mb-4" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+          <div className="col-span-3 border-l bg-background p-4">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentGym) {
     return <div className="p-6">Please log in to access Content Library</div>;
   }
 
   const selectedFormat = contentFormats.find(f => f.id === selectedFormatId) || contentFormats[0];
-  const totalUploaded = contentFormats.reduce((sum, format) => sum + format.uploaded, 0);
-  const totalRequired = contentFormats.reduce((sum, format) => sum + format.total, 0);
+  
+  if (!selectedFormat) {
+    return <div className="p-6">No content formats available</div>;
+  }
+
+  // Calculate overall progress
+  const totalUploaded = contentFormats.reduce((sum, format) => {
+    // This would use real progress data in production
+    return sum + 0; // Placeholder for now
+  }, 0);
+  
+  const totalRequired = contentFormats.reduce((sum, format) => {
+    return sum + (format.total_required || 0);
+  }, 0);
+  
   const overallProgress = totalRequired > 0 ? Math.round((totalUploaded / totalRequired) * 100) : 0;
 
-  const currentContent = formatContent[selectedFormatId as keyof typeof formatContent];
+  // Get current format's content
+  const setupPlanning = Array.isArray(selectedFormat.setup_planning) 
+    ? selectedFormat.setup_planning 
+    : selectedFormat.setup_planning 
+      ? [selectedFormat.setup_planning] 
+      : ['No setup planning available'];
+      
+  const productionTips = Array.isArray(selectedFormat.production_tips) 
+    ? selectedFormat.production_tips 
+    : selectedFormat.production_tips 
+      ? [selectedFormat.production_tips] 
+      : ['No production tips available'];
+      
+  const examples = Array.isArray(selectedFormat.examples) 
+    ? selectedFormat.examples 
+    : selectedFormat.examples 
+      ? [selectedFormat.examples] 
+      : ['No examples available'];
 
   return (
     <div className="h-screen flex flex-col">
@@ -168,8 +163,14 @@ function ContentLibrary() {
             <ScrollArea className="h-full">
               <div className="space-y-3">
                 {contentFormats.map((format) => {
-                  const Icon = format.icon;
+                  const Icon = iconMap[format.format_type as keyof typeof iconMap] || Camera;
+                  const bgColor = bgColorMap[format.format_type as keyof typeof bgColorMap] || 'bg-blue-50';
                   const isSelected = selectedFormat.id === format.id;
+                  
+                  // Mock progress data - in production this would use real data
+                  const uploaded = 0;
+                  const total = format.total_required || 0;
+                  const progress = total > 0 ? Math.round((uploaded / total) * 100) : 0;
                   
                   return (
                     <div 
@@ -182,17 +183,17 @@ function ContentLibrary() {
                       onClick={() => setSelectedFormatId(format.id)}
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <div className={`p-1.5 rounded ${format.bgColor}`}>
+                        <div className={`p-1.5 rounded ${bgColor}`}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <span className="font-medium text-xs">{format.title}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">{format.uploaded}/{format.total}</span>
+                        <span className="text-xs text-muted-foreground">{uploaded}/{total}</span>
                         <div className="w-12 h-1.5 bg-muted rounded-full">
                           <div 
                             className="h-1.5 bg-primary rounded-full transition-all" 
-                            style={{ width: `${format.progress}%` }}
+                            style={{ width: `${progress}%` }}
                           />
                         </div>
                       </div>
@@ -209,12 +210,21 @@ function ContentLibrary() {
           {/* Format Header */}
           <div className="p-4 border-b">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${selectedFormat.bgColor}`}>
-                <selectedFormat.icon className="h-5 w-5" />
+              <div className={`p-2 rounded-lg ${bgColorMap[selectedFormat.format_type as keyof typeof bgColorMap] || 'bg-blue-50'}`}>
+                {(() => {
+                  const Icon = iconMap[selectedFormat.format_type as keyof typeof iconMap] || Camera;
+                  return <Icon className="h-5 w-5" />;
+                })()}
               </div>
               <div>
                 <h2 className="text-xl font-semibold">{selectedFormat.title}</h2>
                 <p className="text-sm text-muted-foreground">{selectedFormat.description}</p>
+                {selectedFormat.dimensions && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedFormat.dimensions}
+                    {selectedFormat.duration && ` • ${selectedFormat.duration}`}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -269,7 +279,7 @@ function ContentLibrary() {
                       <h3 className="text-lg font-semibold">Setup & Planning Steps</h3>
                     </div>
                     <div className="space-y-4">
-                      {currentContent.setupPlanning.map((step, index) => (
+                      {setupPlanning.map((step, index) => (
                         <div key={index} className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
                             {index + 1}
@@ -288,7 +298,7 @@ function ContentLibrary() {
                       <h3 className="text-lg font-semibold">Production Tips</h3>
                     </div>
                     <div className="space-y-4">
-                      {currentContent.productionTips.map((tip, index) => (
+                      {productionTips.map((tip, index) => (
                         <div key={index} className="flex items-start gap-3">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
                           <p className="text-sm leading-relaxed">{tip}</p>
@@ -305,7 +315,7 @@ function ContentLibrary() {
                       <h3 className="text-lg font-semibold">Content Examples</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      {currentContent.examples.map((example, index) => (
+                      {examples.map((example, index) => (
                         <div key={index} className="p-4 border rounded-lg bg-muted/20">
                           <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center">
                             <Upload className="h-8 w-8 text-muted-foreground" />
@@ -331,9 +341,9 @@ function ContentLibrary() {
             
             {/* Progress Summary */}
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{selectedFormat.uploaded}</div>
-              <div className="text-sm text-muted-foreground">of {selectedFormat.total} uploaded</div>
-              <Progress value={selectedFormat.progress} className="mt-2" />
+              <div className="text-2xl font-bold text-primary">0</div>
+              <div className="text-sm text-muted-foreground">of {selectedFormat.total_required || 0} uploaded</div>
+              <Progress value={0} className="mt-2" />
             </div>
           </CardHeader>
 
@@ -374,7 +384,7 @@ function ContentLibrary() {
               Save Draft
             </Button>
             <Button className="w-full text-sm">
-              Submit ({selectedFormat.uploaded}/{selectedFormat.total})
+              Submit (0/{selectedFormat.total_required || 0})
             </Button>
           </div>
         </div>
