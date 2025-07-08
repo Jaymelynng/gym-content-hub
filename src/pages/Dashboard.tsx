@@ -53,7 +53,13 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      // Load assignments for current gym
+      // Load assignments for current gym - first set the context for RLS
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_gym_id',
+        setting_value: currentGym.id,
+        is_local: false
+      });
+
       const { data: assignments, error } = await supabase
         .from('assignment_distributions')
         .select(`
