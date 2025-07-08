@@ -14,7 +14,10 @@ import {
   BookOpen,
   Users,
   Heart,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  Plus,
+  ChevronDown
 } from 'lucide-react';
 
 // Mock data for specific content ideas
@@ -149,6 +152,7 @@ const contentPlans = {
 function ContentLibrary() {
   const [selectedFormat, setSelectedFormat] = useState(contentFormats[0]);
   const [activeTab, setActiveTab] = useState('setup');
+  const [showContentOptions, setShowContentOptions] = useState<number | null>(null);
 
   const currentPlan = contentPlans[selectedFormat.id as keyof typeof contentPlans];
   const totalUploaded = contentFormats.reduce((sum, format) => sum + format.uploaded, 0);
@@ -344,19 +348,56 @@ function ContentLibrary() {
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-sm">{upload.title}</h4>
                     <Badge variant={upload.uploaded ? "default" : "secondary"} className="text-xs">
-                      {upload.uploaded ? "Uploaded" : "Required"}
+                      {upload.uploaded ? "Added" : "Required"}
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{upload.description}</p>
-                  <Button 
-                    variant={upload.uploaded ? "outline" : "default"} 
-                    size="sm" 
-                    className="w-full"
-                    disabled={upload.uploaded}
-                  >
-                    <Upload className="h-3 w-3 mr-2" />
-                    {upload.uploaded ? "Uploaded" : "Upload File"}
-                  </Button>
+                  
+                  {!upload.uploaded && (
+                    <div className="relative">
+                      <Button 
+                        variant="outline"
+                        size="sm" 
+                        className="w-full justify-between"
+                        onClick={() => setShowContentOptions(showContentOptions === upload.id ? null : upload.id)}
+                      >
+                        <span className="flex items-center">
+                          <Plus className="h-3 w-3 mr-2" />
+                          Add Content
+                        </span>
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                      
+                      {showContentOptions === upload.id && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-10">
+                          <div className="p-2 space-y-1">
+                            <Button variant="ghost" size="sm" className="w-full justify-start">
+                              <FileText className="h-3 w-3 mr-2" />
+                              Add Text
+                            </Button>
+                            <Button variant="ghost" size="sm" className="w-full justify-start">
+                              <ImageIcon className="h-3 w-3 mr-2" />
+                              Upload Image
+                            </Button>
+                            <Button variant="ghost" size="sm" className="w-full justify-start">
+                              <Video className="h-3 w-3 mr-2" />
+                              Upload Video
+                            </Button>
+                            <Button variant="ghost" size="sm" className="w-full justify-start">
+                              <Upload className="h-3 w-3 mr-2" />
+                              Upload File
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {upload.uploaded && (
+                    <div className="p-2 bg-green-50 border border-green-200 rounded text-xs">
+                      Content added ✓
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
