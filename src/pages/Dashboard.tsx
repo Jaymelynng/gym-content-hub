@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { ClipboardList, Upload } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useDashboardAssignments } from '@/hooks/useDashboardAssignments';
 import StatsCards from '@/components/dashboard/StatsCards';
@@ -16,17 +17,41 @@ const Dashboard = () => {
   const { stats, loading: statsLoading } = useDashboardStats();
   const { assignments, loading: assignmentsLoading, loadAssignments } = useDashboardAssignments();
 
-  const handleStartTask = (assignmentId: number) => {
-    toast({
-      title: "Task Started",
-      description: "Assignment has been marked as in progress.",
-    });
-    // TODO: Update assignment status to 'in-progress'
-    loadAssignments();
+  const handleStartTask = async (assignmentId: number) => {
+    try {
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_gym_id',
+        setting_value: currentGym!.id,
+        is_local: false
+      });
+
+      const { error } = await supabase
+        .from('assignment_distributions')
+        .update({ 
+          status: 'in-progress'
+        })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Task Started",
+        description: "Assignment has been marked as in progress.",
+      });
+      
+      loadAssignments();
+    } catch (error) {
+      console.error('Error starting task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubmit = (assignmentId: number) => {
-    navigate('/submit');
+    navigate(`/submit?assignment=${assignmentId}`);
   };
 
   return (

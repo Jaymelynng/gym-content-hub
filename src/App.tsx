@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ContentLibrary from "./pages/ContentLibrary";
 import Assignments from "./pages/Assignments";
+import Submit from "./pages/Submit";
 import NotFound from "./pages/NotFound";
 
 // Layouts
@@ -44,7 +45,7 @@ const App = () => (
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="content-library" element={<ContentLibrary />} />
               <Route path="assignments" element={<Assignments />} />
-              <Route path="submit" element={<div>Submit Work - Coming Soon</div>} />
+              <Route path="submit" element={<Submit />} />
               <Route path="calendar" element={<div>Calendar - Coming Soon</div>} />
               <Route path="settings" element={<div>Settings - Coming Soon</div>} />
               <Route path="admin" element={<div>Admin Panel - Coming Soon</div>} />
