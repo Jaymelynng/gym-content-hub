@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Plus, Upload, Play, Video, Camera } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { X, Plus, Upload, Play, Video, Camera, Calendar, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -17,13 +19,27 @@ interface ContentRequirement {
   title: string;
   description: string;
   duration?: string;
-  type: 'photo' | 'video' | 'reel';
+  type: string;
+}
+
+interface GymProfile {
+  id: string;
+  gym_name: string;
+  gym_location: string;
 }
 
 interface CreateAssignmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const CONTENT_FORMATS = [
+  { value: 'static-photo', label: 'Static Photo (Single image)', icon: Camera },
+  { value: 'carousel-images', label: 'Carousel Images (Multi-photo post, 2-10 images)', icon: Camera },
+  { value: 'animated-image', label: 'Animated Image (GIF/Motion photo)', icon: Camera },
+  { value: 'video-reel', label: 'Video/Reel (Vertical format)', icon: Video },
+  { value: 'story', label: 'Story (Short-form content)', icon: Video }
+];
 
 const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
   open,
@@ -37,18 +53,54 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
   const [description, setDescription] = useState('');
   const [setupPlanning, setSetupPlanning] = useState('');
   const [productionTips, setProductionTips] = useState('');
-  const [contentType, setContentType] = useState<'photo' | 'video'>('video');
+  const [contentType, setContentType] = useState('');
   const [contentRequirements, setContentRequirements] = useState<ContentRequirement[]>([]);
-  const [fileRequirements, setFileRequirements] = useState('MP4, MOV files accepted. Maximum 100MB per file.');
+  const [fileRequirements, setFileRequirements] = useState('High-quality files. Video: MP4/MOV, max 100MB. Images: JPG/PNG, max 25MB.');
+  const [dueDate, setDueDate] = useState('');
+  const [selectedGyms, setSelectedGyms] = useState<string[]>([]);
+  const [gymProfiles, setGymProfiles] = useState<GymProfile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load gym profiles for assignment
+  useEffect(() => {
+    const loadGyms = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('gym_profiles')
+          .select('id, gym_name, gym_location')
+          .eq('active', true)
+          .order('gym_name');
+
+        if (error) throw error;
+        setGymProfiles(data || []);
+      } catch (error) {
+        console.error('Error loading gyms:', error);
+      }
+    };
+
+    if (open) {
+      loadGyms();
+    }
+  }, [open]);
+
+  const selectedFormat = CONTENT_FORMATS.find(f => f.value === contentType);
+
   const addContentRequirement = () => {
+    if (!contentType) {
+      toast({
+        title: "Select Content Type",
+        description: "Please select a content format first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newRequirement: ContentRequirement = {
       id: Math.random().toString(36).substr(2, 9),
-      title: `${contentType === 'photo' ? 'Photo' : 'Video'} ${contentRequirements.length + 1}`,
+      title: `${selectedFormat?.label.split(' ')[0]} ${contentRequirements.length + 1}`,
       description: 'Describe the content needed...',
-      duration: contentType === 'video' ? '5-8 seconds' : undefined,
-      type: contentType === 'photo' ? 'photo' : (contentType === 'video' ? 'reel' : 'video')
+      duration: contentType.includes('video') || contentType === 'story' ? '5-15 seconds' : undefined,
+      type: contentType
     };
     setContentRequirements([...contentRequirements, newRequirement]);
   };
@@ -63,7 +115,23 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     ));
   };
 
-  const handleSaveDraft = async () => {
+  const toggleGymSelection = (gymId: string) => {
+    setSelectedGyms(prev => 
+      prev.includes(gymId) 
+        ? prev.filter(id => id !== gymId)
+        : [...prev, gymId]
+    );
+  };
+
+  const selectAllGyms = () => {
+    setSelectedGyms(gymProfiles.map(gym => gym.id));
+  };
+
+  const deselectAllGyms = () => {
+    setSelectedGyms([]);
+  };
+
+  const handleCreateAssignment = async () => {
     if (!title.trim()) {
       toast({
         title: "Title Required",
@@ -73,41 +141,73 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       return;
     }
 
+    if (!contentType) {
+      toast({
+        title: "Content Type Required",
+        description: "Please select a content format.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedGyms.length === 0) {
+      toast({
+        title: "Select Gyms",
+        description: "Please select at least one gym to assign this to.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!dueDate) {
+      toast({
+        title: "Due Date Required",
+        description: "Please set a due date for this assignment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('assignment_drafts')
-        .insert({
-          title,
-          description,
+      // Create assignments for each selected gym
+      const assignments = selectedGyms.map(gymId => ({
+        assigned_by_admin: currentGym?.id || '',
+        assigned_to_gym_id: gymId,
+        custom_title: title,
+        custom_description: description,
+        due_date: dueDate,
+        content_requirements: JSON.stringify({
+          format: contentType,
+          requirements: contentRequirements,
           setup_planning: setupPlanning,
           production_tips: productionTips,
-          content_requirements: JSON.stringify(contentRequirements) as any,
-          file_requirements: fileRequirements,
-          created_by_admin: currentGym?.id || null,
-          status: 'draft'
-        });
+          file_requirements: fileRequirements
+        }) as any,
+        assignment_type: contentType,
+        status: 'assigned'
+      }));
+
+      const { error } = await supabase
+        .from('assignment_distributions')
+        .insert(assignments);
 
       if (error) throw error;
 
       toast({
-        title: "Draft Saved",
-        description: "Assignment draft has been saved successfully.",
+        title: "Assignment Created",
+        description: `Successfully assigned to ${selectedGyms.length} gym(s).`,
       });
 
       // Reset form
-      setTitle('');
-      setDescription('');
-      setSetupPlanning('');
-      setProductionTips('');
-      setContentRequirements([]);
+      resetForm();
       onOpenChange(false);
 
     } catch (error) {
-      console.error('Error saving draft:', error);
+      console.error('Error creating assignment:', error);
       toast({
         title: "Error",
-        description: "Failed to save assignment draft.",
+        description: "Failed to create assignment.",
         variant: "destructive",
       });
     } finally {
@@ -120,70 +220,117 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     setDescription('');
     setSetupPlanning('');
     setProductionTips('');
+    setContentType('');
     setContentRequirements([]);
-    setFileRequirements('MP4, MOV files accepted. Maximum 100MB per file.');
+    setFileRequirements('High-quality files. Video: MP4/MOV, max 100MB. Images: JPG/PNG, max 25MB.');
+    setDueDate('');
+    setSelectedGyms([]);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-7xl h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Assignment Title (e.g., Cartwheel Confidence Transfer)"
-                className="text-lg font-semibold border-none p-0 h-auto bg-transparent"
+                className="text-lg font-semibold border-none p-0 h-auto bg-transparent focus:ring-0"
               />
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 grid grid-cols-12 gap-6 overflow-hidden">
-          {/* Left Panel - Content Type Selection */}
+          {/* Left Panel - Content Type & Assignment Settings */}
           <div className="col-span-3 space-y-4 overflow-y-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Content Type</CardTitle>
+            {/* Content Format Selection */}
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-primary">Content Format</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <Button
-                  variant={contentType === 'photo' ? 'default' : 'outline'}
-                  onClick={() => setContentType('photo')}
-                  className="w-full justify-start"
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Photo Post
-                </Button>
-                <Button
-                  variant={contentType === 'video' ? 'default' : 'outline'}
-                  onClick={() => setContentType('video')}
-                  className="w-full justify-start"
-                >
-                  <Video className="h-4 w-4 mr-2" />
-                  Video Reel
-                </Button>
+              <CardContent>
+                <Select value={contentType} onValueChange={setContentType}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select content type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTENT_FORMATS.map((format) => (
+                      <SelectItem key={format.value} value={format.value}>
+                        <div className="flex items-center gap-2">
+                          <format.icon className="h-4 w-4" />
+                          <span className="text-sm">{format.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Content Progress</CardTitle>
+            {/* Due Date */}
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-primary">Due Date</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gym Assignment */}
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-primary">Assign to Gyms</CardTitle>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={selectAllGyms} className="text-xs">
+                    Select All
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={deselectAllGyms} className="text-xs">
+                    Clear All
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2 max-h-48 overflow-y-auto">
+                {gymProfiles.map((gym) => (
+                  <div key={gym.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={gym.id}
+                      checked={selectedGyms.includes(gym.id)}
+                      onCheckedChange={() => toggleGymSelection(gym.id)}
+                    />
+                    <label htmlFor={gym.id} className="text-sm flex-1 cursor-pointer">
+                      <div className="font-medium">{gym.gym_name}</div>
+                      <div className="text-xs text-muted-foreground">{gym.gym_location}</div>
+                    </label>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Assignment Progress */}
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-primary">Progress</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>{contentRequirements.length}/4 clips uploaded</span>
+                    <span>Selected Gyms: {selectedGyms.length}</span>
+                    <span>Requirements: {contentRequirements.length}</span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{ width: `${(contentRequirements.length / 4) * 100}%` }}
-                    />
-                  </div>
-                  <div className="text-center text-sm text-muted-foreground">
-                    {Math.round((contentRequirements.length / 4) * 100)}%
+                  <div className="text-xs text-muted-foreground">
+                    Ready to assign: {title && contentType && selectedGyms.length > 0 && dueDate ? 'Yes' : 'No'}
                   </div>
                 </div>
               </CardContent>
@@ -194,44 +341,44 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           <div className="col-span-6 overflow-hidden">
             <Tabs defaultValue="setup" className="h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="setup">Setup & Planning</TabsTrigger>
-                <TabsTrigger value="tips">Production Tips</TabsTrigger>
-                <TabsTrigger value="examples">Content Examples</TabsTrigger>
+                <TabsTrigger value="setup" className="font-medium">Setup & Planning</TabsTrigger>
+                <TabsTrigger value="tips" className="font-medium">Production Tips</TabsTrigger>
+                <TabsTrigger value="examples" className="font-medium">Content Examples</TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="setup" className="space-y-4 mt-4">
                   <div>
-                    <Label htmlFor="description">🎯 Post Visual</Label>
+                    <Label htmlFor="description" className="text-sm font-semibold">🎯 Post Visual</Label>
                     <Textarea
                       id="description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Enter the post visual description with emojis and formatting..."
-                      className="min-h-[100px]"
+                      className="min-h-[100px] mt-2"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="setup">Setup & Planning Strategy</Label>
+                    <Label htmlFor="setup" className="text-sm font-semibold">Setup & Planning Strategy</Label>
                     <Textarea
                       id="setup"
                       value={setupPlanning}
                       onChange={(e) => setSetupPlanning(e.target.value)}
                       placeholder="1. First step of content planning...&#10;2. Second step...&#10;3. Third step..."
-                      className="min-h-[200px]"
+                      className="min-h-[200px] mt-2"
                     />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="tips" className="space-y-4 mt-4">
                   <div>
-                    <Label htmlFor="tips">📌 Content Notes</Label>
+                    <Label htmlFor="tips" className="text-sm font-semibold">📌 Content Notes</Label>
                     <Textarea
                       id="tips"
                       value={productionTips}
                       onChange={(e) => setProductionTips(e.target.value)}
                       placeholder="Enter detailed production tips, instructions, and guidelines..."
-                      className="min-h-[300px]"
+                      className="min-h-[300px] mt-2"
                     />
                   </div>
                 </TabsContent>
@@ -256,11 +403,12 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           {/* Right Panel - Upload Requirements */}
           <div className="col-span-3 space-y-4 overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium">Upload Requirements</h3>
+              <h3 className="font-semibold text-primary">Upload Requirements</h3>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={addContentRequirement}
+                disabled={!contentType}
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -268,11 +416,11 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
             <div className="space-y-3">
               {contentRequirements.map((req, index) => (
-                <Card key={req.id} className="relative">
+                <Card key={req.id} className="relative border-2">
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="absolute top-2 right-2 h-6 w-6 p-0"
+                    className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
                     onClick={() => removeContentRequirement(req.id)}
                   >
                     <X className="h-3 w-3" />
@@ -287,7 +435,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
                       <Input
                         value={req.duration}
                         onChange={(e) => updateContentRequirement(req.id, 'duration', e.target.value)}
-                        placeholder="Duration (e.g., 5-8 seconds)"
+                        placeholder="Duration (e.g., 5-15 seconds)"
                         className="text-xs h-7"
                       />
                     )}
@@ -299,7 +447,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
                     />
                     <Button variant="outline" size="sm" className="w-full h-7 text-xs">
                       <Play className="h-3 w-3 mr-1" />
-                      Upload Clip
+                      Upload Preview
                     </Button>
                   </CardContent>
                 </Card>
@@ -307,9 +455,9 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             </div>
 
             {/* File Requirements */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">File Requirements</CardTitle>
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-primary">File Requirements</CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
@@ -324,23 +472,25 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
         {/* Bottom Actions */}
         <div className="flex items-center justify-between border-t pt-4">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={resetForm}>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={resetForm} className="font-medium">
               Reset Form
             </Button>
-            <span className="text-sm text-muted-foreground">
-              {contentRequirements.length}/4 requirements
-            </span>
+            <div className="text-sm text-muted-foreground">
+              <Building2 className="inline h-4 w-4 mr-1" />
+              {selectedGyms.length} gym(s) selected
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Close Guide
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="font-medium">
+              Cancel
             </Button>
-            <Button onClick={handleSaveDraft} disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Draft'}
-            </Button>
-            <Button variant="default" disabled={contentRequirements.length === 0}>
-              Start Creating ({contentRequirements.length}/4)
+            <Button 
+              onClick={handleCreateAssignment} 
+              disabled={isLoading || !title || !contentType || selectedGyms.length === 0 || !dueDate}
+              className="font-medium"
+            >
+              {isLoading ? 'Creating...' : `Assign to ${selectedGyms.length} Gym(s)`}
             </Button>
           </div>
         </div>
