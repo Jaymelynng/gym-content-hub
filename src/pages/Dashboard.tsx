@@ -54,14 +54,33 @@ const Dashboard = () => {
     navigate(`/submit?assignment=${assignmentId}`);
   };
 
+  if (isAdmin) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage all gyms and their access</p>
+          </div>
+        </div>
+
+        {/* Admin Panel Link */}
+        <div className="flex justify-center">
+          <Button onClick={() => navigate('/admin')} size="lg">
+            Go to Admin Panel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            {isAdmin ? 'Admin Dashboard' : 'My Dashboard'}
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground">My Dashboard</h1>
           <p className="text-muted-foreground">
             {currentGym?.gym_name} - {currentGym?.gym_location}
           </p>
