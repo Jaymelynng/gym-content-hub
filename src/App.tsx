@@ -2,11 +2,25 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+
+// Pages
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Assignments from "./pages/Assignments";
 import NotFound from "./pages/NotFound";
 
+// Layouts
+import AppLayout from "./layouts/AppLayout";
+
 const queryClient = new QueryClient();
+
+// Protected Route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -14,11 +28,29 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="assignments" element={<Assignments />} />
+              <Route path="submit" element={<div>Submit Work - Coming Soon</div>} />
+              <Route path="calendar" element={<div>Calendar - Coming Soon</div>} />
+              <Route path="settings" element={<div>Settings - Coming Soon</div>} />
+              <Route path="admin" element={<div>Admin Panel - Coming Soon</div>} />
+              <Route path="admin/gyms" element={<div>All Gyms - Coming Soon</div>} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
