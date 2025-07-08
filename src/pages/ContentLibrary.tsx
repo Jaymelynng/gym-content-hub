@@ -160,80 +160,48 @@ function ContentLibrary() {
   const overallProgress = totalRequired > 0 ? (totalUploaded / totalRequired) * 100 : 0;
 
   return (
-    <div className="flex h-screen gap-6 p-6">
-      {/* LEFT PANEL - Format Selection */}
-      <div className="w-80 flex-shrink-0 space-y-4 overflow-y-auto">
+    <div className="flex h-screen gap-4 p-6">
+      {/* LEFT PANEL - Simplified Format Selection */}
+      <div className="w-48 flex-shrink-0 space-y-4">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Content Formats</h2>
-          <div className="space-y-3">
+          <h2 className="text-lg font-semibold mb-3">Formats</h2>
+          <div className="space-y-1">
             {contentFormats.map((format) => (
-              <Card 
+              <div 
                 key={format.id} 
-                className={`cursor-pointer transition-all ${
+                className={`p-3 rounded-lg cursor-pointer transition-all border ${
                   selectedFormat.id === format.id 
-                    ? 'ring-2 ring-primary shadow-md' 
-                    : 'hover:shadow-sm'
+                    ? 'bg-primary/10 border-primary text-primary' 
+                    : 'hover:bg-muted border-transparent'
                 }`}
                 onClick={() => setSelectedFormat(format)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`p-2 rounded-lg ${format.bgColor}`}>
-                      {format.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{format.title}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {format.type === 'photo' ? '1080x1080' : '1080x1920'}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-2 mb-2">
+                  {format.icon}
+                  <span className="font-medium text-sm">{format.title}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">{format.uploaded}/{format.total}</span>
+                  <div className="w-12 h-1 bg-muted rounded">
+                    <div 
+                      className="h-1 bg-primary rounded" 
+                      style={{ width: `${format.progress}%` }}
+                    ></div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{format.uploaded}/{format.total}</span>
-                    </div>
-                    <Progress value={format.progress} className="h-2" />
-                    <div className="flex gap-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {format.uploaded} uploaded
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {format.total - format.uploaded} remaining
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Overall Progress Summary */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Overall Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{totalUploaded}</div>
-                <div className="text-sm text-muted-foreground">of {totalRequired} clips uploaded</div>
-                <Progress value={overallProgress} className="mt-2" />
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="p-2 bg-muted rounded">
-                  <div className="text-lg font-semibold">{overallProgress.toFixed(0)}%</div>
-                  <div className="text-xs text-muted-foreground">Complete</div>
-                </div>
-                <div className="p-2 bg-muted rounded">
-                  <div className="text-lg font-semibold">{totalRequired - totalUploaded}</div>
-                  <div className="text-xs text-muted-foreground">Remaining</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="p-3 bg-muted rounded-lg">
+          <div className="text-center">
+            <div className="text-xl font-bold">{totalUploaded}/{totalRequired}</div>
+            <div className="text-xs text-muted-foreground mb-2">Total Progress</div>
+            <Progress value={overallProgress} className="h-1" />
+          </div>
+        </div>
       </div>
 
       {/* CENTER PANEL - 3 Tabs */}
@@ -326,25 +294,25 @@ function ContentLibrary() {
         </Tabs>
       </div>
 
-      {/* RIGHT PANEL - Upload Tracker */}
-      <div className="w-80 flex-shrink-0 space-y-4">
+      {/* RIGHT PANEL - Visual Upload Tracker */}
+      <div className="w-72 flex-shrink-0 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              Upload Requirements
+              Content Uploads
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary">{selectedFormat.uploaded}</div>
+              <div className="text-2xl font-bold text-primary">{selectedFormat.uploaded}</div>
               <div className="text-sm text-muted-foreground">of {selectedFormat.total} uploaded</div>
               <Progress value={selectedFormat.progress} className="mt-2" />
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {currentPlan.uploads.map((upload, index) => (
-                <div key={upload.id} className="space-y-2">
+                <div key={upload.id} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-sm">{upload.title}</h4>
                     <Badge variant={upload.uploaded ? "default" : "secondary"} className="text-xs">
@@ -353,51 +321,49 @@ function ContentLibrary() {
                   </div>
                   <p className="text-xs text-muted-foreground">{upload.description}</p>
                   
-                  {!upload.uploaded && (
-                    <div className="relative">
-                      <Button 
-                        variant="outline"
-                        size="sm" 
-                        className="w-full justify-between"
-                        onClick={() => setShowContentOptions(showContentOptions === upload.id ? null : upload.id)}
-                      >
-                        <span className="flex items-center">
-                          <Plus className="h-3 w-3 mr-2" />
-                          Add Content
-                        </span>
-                        <ChevronDown className="h-3 w-3" />
-                      </Button>
-                      
-                      {showContentOptions === upload.id && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-10">
-                          <div className="p-2 space-y-1">
-                            <Button variant="ghost" size="sm" className="w-full justify-start">
-                              <FileText className="h-3 w-3 mr-2" />
-                              Add Text
-                            </Button>
-                            <Button variant="ghost" size="sm" className="w-full justify-start">
-                              <ImageIcon className="h-3 w-3 mr-2" />
-                              Upload Image
-                            </Button>
-                            <Button variant="ghost" size="sm" className="w-full justify-start">
-                              <Video className="h-3 w-3 mr-2" />
-                              Upload Video
-                            </Button>
-                            <Button variant="ghost" size="sm" className="w-full justify-start">
-                              <Upload className="h-3 w-3 mr-2" />
-                              Upload File
-                            </Button>
-                          </div>
+                  {/* Visual Upload Area */}
+                  <div className="border-2 border-dashed border-muted rounded-lg p-4 min-h-[120px] bg-muted/20">
+                    {upload.uploaded ? (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-2">
+                          <CheckCircle className="h-8 w-8 text-green-600" />
                         </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {upload.uploaded && (
-                    <div className="p-2 bg-green-50 border border-green-200 rounded text-xs">
-                      Content added ✓
-                    </div>
-                  )}
+                        <span className="text-xs text-green-600 font-medium">Content Added</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-3">
+                          <Plus className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-2 w-full">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full justify-start h-7 text-xs"
+                          >
+                            <FileText className="h-3 w-3 mr-2" />
+                            Add Text
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full justify-start h-7 text-xs"
+                          >
+                            <ImageIcon className="h-3 w-3 mr-2" />
+                            Upload Image
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full justify-start h-7 text-xs"
+                          >
+                            <Video className="h-3 w-3 mr-2" />
+                            Upload Video
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -409,36 +375,6 @@ function ContentLibrary() {
               <Button className="w-full">
                 Start Creating
               </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upload Progress for All Formats */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Formats Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {contentFormats.map((format) => (
-                <div key={format.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-1 rounded ${format.bgColor}`}>
-                      {format.icon}
-                    </div>
-                    <span className="text-sm">{format.title}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">{format.uploaded}/{format.total}</div>
-                    <div className="w-16 h-1 bg-muted rounded">
-                      <div 
-                        className="h-1 bg-primary rounded" 
-                        style={{ width: `${format.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </CardContent>
         </Card>
