@@ -35,7 +35,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isAdmin = currentGym?.id === '1426' || currentGym?.id === '2222';
 
   const setSupabaseContext = async () => {
-    // Context setting is handled by RLS policies based on current session
+    if (currentGym) {
+      try {
+        await supabase.rpc('set_config', {
+          setting_name: 'app.current_gym_id',
+          setting_value: currentGym.id,
+          is_local: false
+        });
+      } catch (error) {
+        console.error('Error setting Supabase context:', error);
+      }
+    }
   };
 
   const login = async (pinCode: string): Promise<boolean> => {
