@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import FileUploadZone from '@/components/submit/FileUploadZone';
-import FormatProgress from '@/components/submit/FormatProgress';
+import AssignmentInfo from '@/components/submit/AssignmentInfo';
+import ProgressOverview from '@/components/submit/ProgressOverview';
+import SubmissionNotes from '@/components/submit/SubmissionNotes';
+import SubmitActions from '@/components/submit/SubmitActions';
+import ContentUploadSection from '@/components/submit/ContentUploadSection';
 
 interface Assignment {
   id: number;
@@ -296,8 +296,6 @@ const Submit = () => {
     );
   }
 
-  const title = assignment.custom_title || assignment.assignment_templates.title;
-  const description = assignment.custom_description || assignment.assignment_templates.description;
 
   return (
     <div className="space-y-6">
@@ -308,112 +306,35 @@ const Submit = () => {
       </div>
 
       {/* Assignment Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>{title}</span>
-            <Badge variant="outline">
-              Due: {new Date(assignment.due_date).toLocaleDateString()}
-            </Badge>
-          </CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-      </Card>
+      <AssignmentInfo assignment={assignment} />
 
       {/* Progress Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Submission Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-sm">
-              <span>Overall Completion</span>
-              <span>{Math.round(getTotalProgress())}%</span>
-            </div>
-            <Progress value={getTotalProgress()} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
+      <ProgressOverview totalProgress={getTotalProgress()} />
 
       {/* Content Upload Sections */}
       <div className="space-y-4">
         {contentFormats.map((format) => (
-          <Card key={format.format_key}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{format.title}</span>
-                <div className="flex items-center gap-2">
-                  {uploadedFiles[format.format_key]?.status === 'completed' && (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  )}
-                  <Badge variant="outline">
-                    {format.total_required} required
-                  </Badge>
-                </div>
-              </CardTitle>
-              <CardDescription>{format.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUploadZone
-                formatKey={format.format_key}
-                onUpload={(files) => handleFileUpload(format.format_key, files)}
-                uploadState={uploadedFiles[format.format_key]}
-              />
-              <FormatProgress
-                formatKey={format.format_key}
-                required={format.total_required}
-                uploadState={uploadedFiles[format.format_key]}
-              />
-            </CardContent>
-          </Card>
+          <ContentUploadSection
+            key={format.format_key}
+            format={format}
+            uploadState={uploadedFiles[format.format_key]}
+            onFileUpload={(files) => handleFileUpload(format.format_key, files)}
+          />
         ))}
       </div>
 
       {/* Submission Notes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Submission Notes</CardTitle>
-          <CardDescription>
-            Add any notes or context about your submission (optional)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            placeholder="Add notes about your submission..."
-            value={submissionNotes}
-            onChange={(e) => setSubmissionNotes(e.target.value)}
-            rows={4}
-          />
-        </CardContent>
-      </Card>
+      <SubmissionNotes 
+        submissionNotes={submissionNotes}
+        onNotesChange={setSubmissionNotes}
+      />
 
       {/* Submit Button */}
-      <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={() => navigate('/assignments')}>
-          Back to Assignments
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || getTotalProgress() === 0}
-          className="min-w-32"
-        >
-          {isSubmitting ? (
-            <>
-              <Upload className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Submit Work
-            </>
-          )}
-        </Button>
-      </div>
+      <SubmitActions
+        isSubmitting={isSubmitting}
+        totalProgress={getTotalProgress()}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };
