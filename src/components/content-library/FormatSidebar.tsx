@@ -32,7 +32,7 @@ export function FormatSidebar({
   overallProgress
 }: FormatSidebarProps) {
   return (
-    <Card className="w-80 flex-shrink-0 h-fit bg-card border shadow-sm">
+    <Card className="w-full h-fit bg-card border shadow-sm">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg">Content Formats</CardTitle>
       </CardHeader>

@@ -28,7 +28,7 @@ export function ContentTabs({
   onTabChange
 }: ContentTabsProps) {
   return (
-    <Card className="flex-1 h-fit bg-card border shadow-sm">
+    <Card className="w-full h-fit bg-card border shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${selectedFormat.bgColor}`}>

@@ -15,26 +15,32 @@ function ContentLibrary() {
 
   return (
     <div className="flex h-screen gap-6 p-6 bg-muted/20">
-      <FormatSidebar
-        contentFormats={contentFormats}
-        selectedFormat={selectedFormat}
-        onFormatSelect={setSelectedFormat}
-        totalUploaded={totalUploaded}
-        totalRequired={totalRequired}
-        overallProgress={overallProgress}
-      />
+      <div className="w-[18%] flex-shrink-0">
+        <FormatSidebar
+          contentFormats={contentFormats}
+          selectedFormat={selectedFormat}
+          onFormatSelect={setSelectedFormat}
+          totalUploaded={totalUploaded}
+          totalRequired={totalRequired}
+          overallProgress={overallProgress}
+        />
+      </div>
 
-      <ContentTabs
-        currentPlan={currentPlan}
-        selectedFormat={selectedFormat}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      <div className="w-[57%] flex-shrink-0">
+        <ContentTabs
+          currentPlan={currentPlan}
+          selectedFormat={selectedFormat}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </div>
 
-      <UploadPanel
-        selectedFormat={selectedFormat}
-        uploads={currentPlan.uploads}
-      />
+      <div className="w-[25%] flex-shrink-0">
+        <UploadPanel
+          selectedFormat={selectedFormat}
+          uploads={currentPlan.uploads}
+        />
+      </div>
     </div>
   );
 }

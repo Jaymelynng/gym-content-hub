@@ -32,7 +32,7 @@ interface UploadPanelProps {
 
 export function UploadPanel({ selectedFormat, uploads }: UploadPanelProps) {
   return (
-    <Card className="w-80 flex-shrink-0 h-fit bg-card border shadow-sm">
+    <Card className="w-full h-fit bg-card border shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Upload className="h-5 w-5" />
