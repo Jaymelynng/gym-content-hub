@@ -2,16 +2,28 @@ import React, { useState } from 'react';
 import { FormatSidebar } from '@/components/content-library/FormatSidebar';
 import { ContentTabs } from '@/components/content-library/ContentTabs';
 import { UploadPanel } from '@/components/content-library/UploadPanel';
-import { contentFormats, contentPlans, ContentFormat } from '@/data/contentFormats';
+import { useContentFormats } from '@/hooks/useContentFormats';
+import { useAuth } from '@/contexts/AuthContext';
 
 function ContentLibrary() {
-  const [selectedFormat, setSelectedFormat] = useState<ContentFormat>(contentFormats[0]);
+  const [selectedFormatId, setSelectedFormatId] = useState<string>('');
   const [activeTab, setActiveTab] = useState('setup');
-
-  const currentPlan = contentPlans[selectedFormat.id as keyof typeof contentPlans];
-  const totalUploaded = contentFormats.reduce((sum, format) => sum + format.uploaded, 0);
-  const totalRequired = contentFormats.reduce((sum, format) => sum + format.total, 0);
-  const overallProgress = totalRequired > 0 ? (totalUploaded / totalRequired) * 100 : 0;
+  const { currentGym } = useAuth();
+  
+  const { data: contentFormats = [], isLoading } = useContentFormats();
+  
+  // Set default selected format when data loads
+  React.useEffect(() => {
+    if (!selectedFormatId && contentFormats.length > 0) {
+      setSelectedFormatId(contentFormats[0].id);
+    }
+  }, [contentFormats, selectedFormatId]);
+  
+  const selectedFormat = contentFormats.find(f => f.id === selectedFormatId) || contentFormats[0];
+  
+  if (isLoading || !currentGym) {
+    return <div className="flex items-center justify-center h-full">Loading...</div>;
+  }
 
   return (
     <div className="flex gap-6 p-6 bg-muted/20" style={{ height: 'calc(100vh - 3rem)' }}>
@@ -19,16 +31,12 @@ function ContentLibrary() {
         <FormatSidebar
           contentFormats={contentFormats}
           selectedFormat={selectedFormat}
-          onFormatSelect={setSelectedFormat}
-          totalUploaded={totalUploaded}
-          totalRequired={totalRequired}
-          overallProgress={overallProgress}
+          onFormatSelect={(format) => setSelectedFormatId(format.id)}
         />
       </div>
 
       <div className="w-[57%] flex-shrink-0 h-full">
         <ContentTabs
-          currentPlan={currentPlan}
           selectedFormat={selectedFormat}
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -38,7 +46,6 @@ function ContentLibrary() {
       <div className="w-[25%] flex-shrink-0 h-full">
         <UploadPanel
           selectedFormat={selectedFormat}
-          uploads={currentPlan.uploads}
         />
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface AdminStats {
   totalGyms: number;
@@ -11,6 +12,7 @@ export interface AdminStats {
 }
 
 export const useAdminStats = () => {
+  const { currentGym, isAdmin } = useAuth();
   const [stats, setStats] = useState<AdminStats>({
     totalGyms: 0,
     activeAssignments: 0,
@@ -25,10 +27,16 @@ export const useAdminStats = () => {
     try {
       setLoading(true);
 
+      // Only proceed if user is admin
+      if (!isAdmin || !currentGym?.id) {
+        console.warn('Admin access required for stats');
+        return;
+      }
+
       // Set admin context
       await supabase.rpc('set_config', {
         setting_name: 'app.current_gym_id',
-        setting_value: '1426',
+        setting_value: currentGym.id,
         is_local: false
       });
 
@@ -81,7 +89,7 @@ export const useAdminStats = () => {
 
   useEffect(() => {
     loadStats();
-  }, []);
+  }, [currentGym?.id, isAdmin]);
 
   return { stats, loading, loadStats };
 };

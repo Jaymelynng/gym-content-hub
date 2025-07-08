@@ -84,7 +84,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           production_tips: productionTips,
           content_requirements: JSON.stringify(contentRequirements) as any,
           file_requirements: fileRequirements,
-          created_by_admin: currentGym?.id || '1426',
+          created_by_admin: currentGym?.id || null,
           status: 'draft'
         });
 

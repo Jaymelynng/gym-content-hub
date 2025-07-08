@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface GymSubmissionStatus {
   id: string;
@@ -16,6 +17,7 @@ export interface GymSubmissionStatus {
 }
 
 export const useGymSubmissions = () => {
+  const { currentGym, isAdmin } = useAuth();
   const [gyms, setGyms] = useState<GymSubmissionStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,10 +25,16 @@ export const useGymSubmissions = () => {
     try {
       setLoading(true);
 
+      // Only proceed if user is admin
+      if (!isAdmin || !currentGym?.id) {
+        console.warn('Admin access required for gym submissions');
+        return;
+      }
+
       // Set admin context
       await supabase.rpc('set_config', {
         setting_name: 'app.current_gym_id',
-        setting_value: '1426',
+        setting_value: currentGym.id,
         is_local: false
       });
 
@@ -113,7 +121,7 @@ export const useGymSubmissions = () => {
 
   useEffect(() => {
     loadGymSubmissions();
-  }, []);
+  }, [currentGym?.id, isAdmin]);
 
   return { gyms, loading, loadGymSubmissions };
 };
