@@ -3,16 +3,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import AssignmentCard from '@/components/AssignmentCard';
 import { 
   ClipboardList, 
   Clock, 
   CheckCircle, 
-  AlertTriangle, 
-  TrendingUp,
-  Calendar,
+  AlertTriangle,
   Upload
 } from 'lucide-react';
 
@@ -23,24 +22,34 @@ interface DashboardStats {
   overdueAssignments: number;
 }
 
-interface RecentAssignment {
+interface ContentFormat {
+  format_key: string;
+  title: string;
+  icon_name: string;
+  format_type: string;
+}
+
+interface AssignmentWithDetails {
   id: number;
   title: string;
+  description: string;
   due_date: string;
   status: string;
   priority: string;
+  formats: ContentFormat[];
 }
 
 const Dashboard = () => {
   const { currentGym, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [stats, setStats] = useState<DashboardStats>({
     totalAssignments: 0,
     activeAssignments: 0,
     completedAssignments: 0,
     overdueAssignments: 0,
   });
-  const [recentAssignments, setRecentAssignments] = useState<RecentAssignment[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadDashboardData = async () => {
@@ -56,17 +65,21 @@ const Dashboard = () => {
         is_local: false
       });
 
-      const { data: assignments, error } = await supabase
+      // Load assignments with template and format data
+      const { data: assignmentData, error } = await supabase
         .from('assignment_distributions')
         .select(`
           id,
           custom_title,
+          custom_description,
           due_date,
           status,
           priority_override,
           assignment_templates (
             title,
-            priority
+            description,
+            priority,
+            formats_required
           )
         `)
         .eq('assigned_to_gym_id', currentGym.id)
@@ -77,18 +90,30 @@ const Dashboard = () => {
         return;
       }
 
+      // Load content formats
+      const { data: contentFormats, error: formatsError } = await supabase
+        .from('content_formats')
+        .select('format_key, title, icon_name, format_type')
+        .eq('is_active', true);
+
+      if (formatsError) {
+        console.error('Error loading content formats:', formatsError);
+        return;
+      }
+
       const now = new Date();
-      const assignmentData = assignments || [];
+      const assignments = assignmentData || [];
+      const formats = contentFormats || [];
 
       // Calculate stats
-      const totalAssignments = assignmentData.length;
-      const activeAssignments = assignmentData.filter(
+      const totalAssignments = assignments.length;
+      const activeAssignments = assignments.filter(
         a => ['assigned', 'acknowledged', 'in-progress'].includes(a.status)
       ).length;
-      const completedAssignments = assignmentData.filter(
+      const completedAssignments = assignments.filter(
         a => ['completed', 'approved'].includes(a.status)
       ).length;
-      const overdueAssignments = assignmentData.filter(
+      const overdueAssignments = assignments.filter(
         a => new Date(a.due_date) < now && !['completed', 'approved'].includes(a.status)
       ).length;
 
@@ -99,16 +124,28 @@ const Dashboard = () => {
         overdueAssignments,
       });
 
-      // Recent assignments
-      const recent = assignmentData.slice(0, 5).map(assignment => ({
-        id: assignment.id,
-        title: assignment.custom_title || assignment.assignment_templates?.title || 'Untitled Assignment',
-        due_date: assignment.due_date,
-        status: assignment.status,
-        priority: assignment.priority_override || assignment.assignment_templates?.priority || 'medium',
-      }));
+      // Process assignments with format details
+      const processedAssignments = assignments.slice(0, 6).map(assignment => {
+        const template = assignment.assignment_templates;
+        const requiredFormats = template?.formats_required || [];
+        
+        // Get format details for required formats
+        const assignmentFormats = requiredFormats.map(formatKey => 
+          formats.find(f => f.format_key === formatKey)
+        ).filter(Boolean) as ContentFormat[];
 
-      setRecentAssignments(recent);
+        return {
+          id: assignment.id,
+          title: assignment.custom_title || template?.title || 'Untitled Assignment',
+          description: assignment.custom_description || template?.description || 'No description provided',
+          due_date: assignment.due_date,
+          status: assignment.status,
+          priority: assignment.priority_override || template?.priority || 'medium',
+          formats: assignmentFormats,
+        };
+      });
+
+      setAssignments(processedAssignments);
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -120,6 +157,19 @@ const Dashboard = () => {
   useEffect(() => {
     loadDashboardData();
   }, [currentGym]);
+
+  const handleStartTask = (assignmentId: number) => {
+    toast({
+      title: "Task Started",
+      description: "Assignment has been marked as in progress.",
+    });
+    // TODO: Update assignment status to 'in-progress'
+    loadDashboardData();
+  };
+
+  const handleSubmit = (assignmentId: number) => {
+    navigate('/submit');
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -259,52 +309,47 @@ const Dashboard = () => {
       </div>
 
 
-      {/* Recent Assignments */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Recent Assignments
-          </CardTitle>
-          <CardDescription>
-            Your latest assignment activities
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {recentAssignments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No assignments yet</p>
-              <p className="text-sm">New assignments will appear here</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {recentAssignments.map((assignment) => (
-                <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${getStatusColor(assignment.status)}`}></div>
-                    <div>
-                      <p className="font-medium">{assignment.title}</p>
-                      <p className={`text-sm ${isOverdue(assignment.due_date) && !['completed', 'approved'].includes(assignment.status) ? 'text-destructive' : 'text-muted-foreground'}`}>
-                        Due: {formatDate(assignment.due_date)}
-                        {isOverdue(assignment.due_date) && !['completed', 'approved'].includes(assignment.status) && ' (Overdue)'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getPriorityVariant(assignment.priority)}>
-                      {assignment.priority}
-                    </Badge>
-                    <Badge variant="outline">
-                      {assignment.status.replace('-', ' ')}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Assignment Cards */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Your Assignments</h2>
+          <Button variant="outline" onClick={() => navigate('/assignments')}>
+            View All
+          </Button>
+        </div>
+        
+        {assignments.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <ClipboardList className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <h3 className="text-lg font-semibold mb-2">No assignments yet</h3>
+              <p className="text-muted-foreground mb-4">
+                New assignments will appear here when they're assigned to your gym
+              </p>
+              <Button onClick={() => navigate('/content-library')}>
+                Explore Content Library
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {assignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                id={assignment.id}
+                title={assignment.title}
+                description={assignment.description}
+                status={assignment.status}
+                priority={assignment.priority}
+                dueDate={assignment.due_date}
+                formats={assignment.formats}
+                onStartTask={handleStartTask}
+                onSubmit={handleSubmit}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
