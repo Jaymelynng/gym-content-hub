@@ -14,8 +14,8 @@ function ContentLibrary() {
   const overallProgress = totalRequired > 0 ? (totalUploaded / totalRequired) * 100 : 0;
 
   return (
-    <div className="flex h-screen gap-6 p-6 bg-muted/20">
-      <div className="w-[18%] flex-shrink-0">
+    <div className="flex gap-6 p-6 bg-muted/20" style={{ height: 'calc(100vh - 3rem)' }}>
+      <div className="w-[18%] flex-shrink-0 h-full">
         <FormatSidebar
           contentFormats={contentFormats}
           selectedFormat={selectedFormat}
@@ -26,7 +26,7 @@ function ContentLibrary() {
         />
       </div>
 
-      <div className="w-[57%] flex-shrink-0">
+      <div className="w-[57%] flex-shrink-0 h-full">
         <ContentTabs
           currentPlan={currentPlan}
           selectedFormat={selectedFormat}
@@ -35,7 +35,7 @@ function ContentLibrary() {
         />
       </div>
 
-      <div className="w-[25%] flex-shrink-0">
+      <div className="w-[25%] flex-shrink-0 h-full">
         <UploadPanel
           selectedFormat={selectedFormat}
           uploads={currentPlan.uploads}
