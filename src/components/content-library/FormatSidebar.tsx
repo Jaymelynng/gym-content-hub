@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +39,16 @@ export function FormatSidebar({
         <CardTitle className="text-lg">Content Formats</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col space-y-6 overflow-hidden">
+        {/* Overall Progress Summary */}
+        <div className="p-4 bg-muted rounded-lg border flex-shrink-0">
+          <div className="text-center space-y-3">
+            <div className="text-2xl font-bold">{totalUploaded}/{totalRequired}</div>
+            <div className="text-xs text-muted-foreground">Total Progress</div>
+            <Progress value={overallProgress} className="h-2" />
+            <div className="text-xs font-medium">{Math.round(overallProgress)}% Complete</div>
+          </div>
+        </div>
+
         <ScrollArea className="flex-1">
           <div className="space-y-3 pr-4">
             {contentFormats.map((format) => (
@@ -69,16 +80,6 @@ export function FormatSidebar({
             ))}
           </div>
         </ScrollArea>
-
-        {/* Overall Progress Summary */}
-        <div className="p-4 bg-muted rounded-lg border flex-shrink-0">
-          <div className="text-center space-y-3">
-            <div className="text-2xl font-bold">{totalUploaded}/{totalRequired}</div>
-            <div className="text-xs text-muted-foreground">Total Progress</div>
-            <Progress value={overallProgress} className="h-2" />
-            <div className="text-xs font-medium">{Math.round(overallProgress)}% Complete</div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
