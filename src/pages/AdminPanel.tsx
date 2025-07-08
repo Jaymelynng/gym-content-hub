@@ -5,15 +5,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
 import CreateAssignmentModal from '@/components/admin/CreateAssignmentModal';
 import AdminStatsCards from '@/components/admin/AdminStatsCards';
-import GymPerformanceTable from '@/components/admin/GymPerformanceTable';
+import GymSubmissionTable from '@/components/admin/GymSubmissionTable';
 import { useAdminStats } from '@/hooks/useAdminStats';
-import { useGymPerformance } from '@/hooks/useGymPerformance';
+import { useGymSubmissions } from '@/hooks/useGymSubmissions';
 
 const AdminPanel = () => {
   const { currentGym, isAdmin } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { stats, loading: statsLoading } = useAdminStats();
-  const { gyms, loading: gymsLoading } = useGymPerformance();
+  const { gyms, loading: gymsLoading } = useGymSubmissions();
 
   if (!isAdmin) {
     return (
@@ -36,7 +36,7 @@ const AdminPanel = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Admin Master Dashboard</h1>
-          <p className="text-muted-foreground">Monitor all gym performance and assignments</p>
+          <p className="text-muted-foreground">Monitor all gym submissions and assignments</p>
         </div>
         <Button 
           onClick={() => setIsCreateModalOpen(true)}
@@ -50,8 +50,8 @@ const AdminPanel = () => {
       {/* Admin Stats Cards */}
       <AdminStatsCards stats={stats} loading={statsLoading} />
 
-      {/* Gym Performance Table */}
-      <GymPerformanceTable gyms={gyms} loading={gymsLoading} />
+      {/* Gym Submission Table */}
+      <GymSubmissionTable gyms={gyms} loading={gymsLoading} />
 
       {/* Create Assignment Modal */}
       <CreateAssignmentModal 

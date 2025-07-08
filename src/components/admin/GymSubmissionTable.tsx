@@ -12,15 +12,15 @@ import {
 } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { MessageSquare, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { GymPerformance } from '@/hooks/useGymPerformance';
+import { GymSubmissionStatus } from '@/hooks/useGymSubmissions';
 import { formatDistanceToNow } from 'date-fns';
 
-interface GymPerformanceTableProps {
-  gyms: GymPerformance[];
+interface GymSubmissionTableProps {
+  gyms: GymSubmissionStatus[];
   loading: boolean;
 }
 
-const getStatusBadge = (status: GymPerformance['status']) => {
+const getStatusBadge = (status: GymSubmissionStatus['status']) => {
   const variants = {
     excellent: 'default',
     good: 'secondary',
@@ -42,12 +42,12 @@ const getStatusBadge = (status: GymPerformance['status']) => {
   );
 };
 
-const GymPerformanceTable: React.FC<GymPerformanceTableProps> = ({ gyms, loading }) => {
+const GymSubmissionTable: React.FC<GymSubmissionTableProps> = ({ gyms, loading }) => {
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Gym Performance Overview</CardTitle>
+          <CardTitle>Gym Submission Status</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
@@ -63,7 +63,7 @@ const GymPerformanceTable: React.FC<GymPerformanceTableProps> = ({ gyms, loading
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Gym Performance Overview</CardTitle>
+        <CardTitle>Gym Submission Status</CardTitle>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <MessageSquare className="h-4 w-4 mr-2" />
@@ -160,4 +160,4 @@ const GymPerformanceTable: React.FC<GymPerformanceTableProps> = ({ gyms, loading
   );
 };
 
-export default GymPerformanceTable;
+export default GymSubmissionTable;

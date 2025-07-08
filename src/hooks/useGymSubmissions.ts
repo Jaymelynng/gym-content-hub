@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface GymPerformance {
+export interface GymSubmissionStatus {
   id: string;
   gym_name: string;
   gym_location: string;
@@ -15,11 +15,11 @@ export interface GymPerformance {
   status: 'excellent' | 'good' | 'warning' | 'critical';
 }
 
-export const useGymPerformance = () => {
-  const [gyms, setGyms] = useState<GymPerformance[]>([]);
+export const useGymSubmissions = () => {
+  const [gyms, setGyms] = useState<GymSubmissionStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadGymPerformance = async () => {
+  const loadGymSubmissions = async () => {
     try {
       setLoading(true);
 
@@ -48,7 +48,7 @@ export const useGymPerformance = () => {
       const now = new Date();
       const assignments = assignmentsData || [];
 
-      const gymPerformance = (gymsData || []).map(gym => {
+      const gymSubmissionStatus = (gymsData || []).map(gym => {
         const gymAssignments = assignments.filter(a => a.assigned_to_gym_id === gym.id);
         
         const totalAssignments = gymAssignments.length;
@@ -79,7 +79,7 @@ export const useGymPerformance = () => {
           .sort((a, b) => new Date(b.submitted_at!).getTime() - new Date(a.submitted_at!).getTime())[0]?.submitted_at || null;
 
         // Determine status
-        let status: GymPerformance['status'] = 'excellent';
+        let status: GymSubmissionStatus['status'] = 'excellent';
         if (overdueAssignments > 0 || completionRate < 50) {
           status = 'critical';
         } else if (completionRate < 80 || averageResponseTime > 7) {
@@ -103,17 +103,17 @@ export const useGymPerformance = () => {
         };
       });
 
-      setGyms(gymPerformance);
+      setGyms(gymSubmissionStatus);
     } catch (error) {
-      console.error('Error loading gym performance:', error);
+      console.error('Error loading gym submissions:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadGymPerformance();
+    loadGymSubmissions();
   }, []);
 
-  return { gyms, loading, loadGymPerformance };
+  return { gyms, loading, loadGymSubmissions };
 };
