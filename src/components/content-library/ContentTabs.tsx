@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CheckCircle, Target, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Target, BookOpen, Upload, Plus, FileText, Image as ImageIcon } from 'lucide-react';
 
 interface ContentPlan {
   title: string;
@@ -111,10 +112,29 @@ export function ContentTabs({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
                     {currentPlan.examples.map((example, index) => (
                       <div key={index} className="p-4 border rounded-lg bg-background">
-                        <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center">
-                          {selectedFormat.icon}
+                        <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center relative group">
+                          {/* Upload Area for Examples */}
+                          <div className="absolute inset-0 border-2 border-dashed border-muted rounded-lg bg-muted/20 hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2">
+                            <Upload className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <div className="text-center">
+                              <p className="text-xs font-medium text-foreground">Add Example Content</p>
+                              <p className="text-xs text-muted-foreground">Image or text</p>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm font-medium">{example}</p>
+                        <p className="text-sm font-medium mb-3">{example}</p>
+                        
+                        {/* Action Buttons for Examples */}
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex-1 text-xs">
+                            <ImageIcon className="h-3 w-3 mr-1" />
+                            Add Image
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 text-xs">
+                            <FileText className="h-3 w-3 mr-1" />
+                            Add Text
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
