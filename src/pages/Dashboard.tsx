@@ -21,8 +21,6 @@ interface DashboardStats {
   activeAssignments: number;
   completedAssignments: number;
   overdueAssignments: number;
-  submissionRate: number;
-  avgQualityScore: number;
 }
 
 interface RecentAssignment {
@@ -41,8 +39,6 @@ const Dashboard = () => {
     activeAssignments: 0,
     completedAssignments: 0,
     overdueAssignments: 0,
-    submissionRate: 0,
-    avgQualityScore: 0,
   });
   const [recentAssignments, setRecentAssignments] = useState<RecentAssignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,17 +92,11 @@ const Dashboard = () => {
         a => new Date(a.due_date) < now && !['completed', 'approved'].includes(a.status)
       ).length;
 
-      const submissionRate = totalAssignments > 0 
-        ? Math.round((completedAssignments / totalAssignments) * 100)
-        : 0;
-
       setStats({
         totalAssignments,
         activeAssignments,
         completedAssignments,
         overdueAssignments,
-        submissionRate,
-        avgQualityScore: 8.5, // Mock data - would come from submissions
       });
 
       // Recent assignments
@@ -268,49 +258,6 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Progress and Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Submission Rate
-            </CardTitle>
-            <CardDescription>
-              Percentage of assignments completed on time
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Overall Progress</span>
-              <span className="text-sm text-muted-foreground">{stats.submissionRate}%</span>
-            </div>
-            <Progress value={stats.submissionRate} className="h-2" />
-            <div className="text-sm text-muted-foreground">
-              {stats.completedAssignments} of {stats.totalAssignments} assignments completed
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quality Score</CardTitle>
-            <CardDescription>
-              Average quality rating from admin reviews
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Average Score</span>
-              <span className="text-2xl font-bold">{stats.avgQualityScore}/10</span>
-            </div>
-            <Progress value={stats.avgQualityScore * 10} className="h-2" />
-            <div className="text-sm text-muted-foreground">
-              Based on submitted work reviews
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Recent Assignments */}
       <Card>
