@@ -54,10 +54,34 @@ const Dashboard = () => {
     navigate(`/submit?assignment=${assignmentId}`);
   };
 
-  // If admin, redirect them to admin panel instead of showing dashboard
+  // If admin, show admin dashboard with stats and cards
   if (isAdmin) {
-    navigate('/admin');
-    return null;
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Quick overview and management</p>
+          </div>
+          <Button onClick={() => navigate('/admin')}>
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Full Admin Panel
+          </Button>
+        </div>
+
+        {/* Quick Stats */}
+        <StatsCards stats={stats} loading={statsLoading} />
+
+        {/* Recent Assignments */}
+        <AssignmentGrid 
+          assignments={assignments}
+          loading={assignmentsLoading}
+          onStartTask={handleStartTask}
+          onSubmit={handleSubmit}
+        />
+      </div>
+    );
   }
 
   return (
