@@ -53,9 +53,6 @@ export function UploadPanel({ selectedFormat, uploads }: UploadPanelProps) {
                 <div key={upload.id} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-sm">{upload.title}</h4>
-                    <Badge variant={upload.uploaded ? "default" : "secondary"} className="text-xs">
-                      {upload.uploaded ? "Added" : "Required"}
-                    </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{upload.description}</p>
                   
