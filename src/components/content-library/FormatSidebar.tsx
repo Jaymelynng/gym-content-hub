@@ -1,5 +1,6 @@
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ContentFormat {
   id: string;
@@ -31,9 +32,11 @@ export function FormatSidebar({
   overallProgress
 }: FormatSidebarProps) {
   return (
-    <div className="w-48 flex-shrink-0 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Formats</h2>
+    <Card className="w-80 flex-shrink-0 h-fit bg-card border shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg">Content Formats</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="space-y-1">
           {contentFormats.map((format) => (
             <div 
@@ -61,16 +64,16 @@ export function FormatSidebar({
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Overall Progress Summary */}
-      <div className="p-3 bg-muted rounded-lg">
-        <div className="text-center">
-          <div className="text-xl font-bold">{totalUploaded}/{totalRequired}</div>
-          <div className="text-xs text-muted-foreground mb-2">Total Progress</div>
-          <Progress value={overallProgress} className="h-1" />
+        {/* Overall Progress Summary */}
+        <div className="p-3 bg-muted rounded-lg border">
+          <div className="text-center">
+            <div className="text-xl font-bold">{totalUploaded}/{totalRequired}</div>
+            <div className="text-xs text-muted-foreground mb-2">Total Progress</div>
+            <Progress value={overallProgress} className="h-1" />
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

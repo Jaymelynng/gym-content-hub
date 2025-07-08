@@ -14,7 +14,7 @@ function ContentLibrary() {
   const overallProgress = totalRequired > 0 ? (totalUploaded / totalRequired) * 100 : 0;
 
   return (
-    <div className="flex h-screen gap-4 p-6">
+    <div className="flex h-screen gap-6 p-6 bg-muted/20">
       <FormatSidebar
         contentFormats={contentFormats}
         selectedFormat={selectedFormat}
