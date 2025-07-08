@@ -7,10 +7,8 @@ import { ClipboardList, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useDashboardAssignments } from '@/hooks/useDashboardAssignments';
-import { useGymSubmissions } from '@/hooks/useGymSubmissions';
 import StatsCards from '@/components/dashboard/StatsCards';
 import AssignmentGrid from '@/components/dashboard/AssignmentGrid';
-import GymSubmissionTable from '@/components/admin/GymSubmissionTable';
 
 const Dashboard = () => {
   const { currentGym, isAdmin } = useAuth();
@@ -18,7 +16,6 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { stats, loading: statsLoading } = useDashboardStats();
   const { assignments, loading: assignmentsLoading, loadAssignments } = useDashboardAssignments();
-  const { gyms, loading: gymsLoading } = useGymSubmissions();
 
   const handleStartTask = async (assignmentId: number) => {
     try {
@@ -57,24 +54,10 @@ const Dashboard = () => {
     navigate(`/submit?assignment=${assignmentId}`);
   };
 
+  // If admin, redirect them to admin panel instead of showing dashboard
   if (isAdmin) {
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage all gyms and their access</p>
-          </div>
-          <Button onClick={() => navigate('/admin')}>
-            Admin Panel
-          </Button>
-        </div>
-
-        {/* Gym Submission Table */}
-        <GymSubmissionTable gyms={gyms} loading={gymsLoading} />
-      </div>
-    );
+    navigate('/admin');
+    return null;
   }
 
   return (
