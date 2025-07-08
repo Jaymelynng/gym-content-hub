@@ -29,7 +29,12 @@ function ContentLibrary() {
       <div className="w-[57%] flex-shrink-0 h-full">
         <ContentTabs
           currentPlan={currentPlan}
-          selectedFormat={selectedFormat}
+          selectedFormat={{
+            icon: selectedFormat.icon,
+            bgColor: selectedFormat.bgColor,
+            dimensions: selectedFormat.dimensions,
+            duration: selectedFormat.duration
+          }}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
