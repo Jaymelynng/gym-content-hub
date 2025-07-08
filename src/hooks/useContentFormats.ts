@@ -7,15 +7,32 @@ export interface ContentFormat {
   format_key: string;
   title: string;
   description: string;
-  thumbnail_url: string;
-  icon_name: string;
   format_type: 'photo' | 'video' | 'carousel' | 'story' | 'animated';
   dimensions: string;
-  duration: string;
+  duration: string | null;
   total_required: number;
-  setup_planning: any;
-  production_tips: any;
-  examples: any;
+  setup_planning: {
+    title: string;
+    checklist: string[];
+    timeline: string;
+    requirements: string[];
+  };
+  production_tips: {
+    title: string;
+    tips: string[];
+    dosDonts: {
+      dos: string[];
+      donts: string[];
+    };
+    equipment: string[];
+  };
+  examples: {
+    title: string;
+    descriptions: string[];
+    commonMistakes: string[];
+  };
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FormatSubmission {
@@ -30,21 +47,45 @@ export interface FormatSubmission {
   submitted_at: string;
 }
 
-export function useContentFormats() {
+export const useContentFormats = () => {
   return useQuery({
     queryKey: ['content-formats'],
-    queryFn: async () => {
+    queryFn: async (): Promise<ContentFormat[]> => {
       const { data, error } = await supabase
         .from('content_formats')
         .select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
-        
-      if (error) throw error;
-      return data as ContentFormat[];
+        .order('created_at');
+
+      if (error) {
+        throw new Error(`Failed to fetch content formats: ${error.message}`);
+      }
+
+      return data || [];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-}
+};
+
+export const useContentFormat = (formatKey: string) => {
+  return useQuery({
+    queryKey: ['content-format', formatKey],
+    queryFn: async (): Promise<ContentFormat | null> => {
+      const { data, error } = await supabase
+        .from('content_formats')
+        .select('*')
+        .eq('format_key', formatKey)
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to fetch content format: ${error.message}`);
+      }
+
+      return data;
+    },
+    enabled: !!formatKey,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
 
 export function useFormatSubmissions(formatId: string) {
   const { currentGym } = useAuth();

@@ -1,149 +1,233 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Target, BookOpen, Upload, Plus, FileText, Image as ImageIcon } from 'lucide-react';
-
-interface ContentPlan {
-  title: string;
-  description: string;
-  setupSteps: string[];
-  productionTips: string[];
-  examples: string[];
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Clock, AlertCircle, Lightbulb, Camera, Video, Image, Play, Zap } from 'lucide-react';
+import { ContentFormat } from '@/hooks/useContentFormats';
 
 interface ContentTabsProps {
-  currentPlan: ContentPlan;
-  selectedFormat: {
-    icon: React.ReactNode;
-    bgColor: string;
-  };
+  selectedFormat: ContentFormat;
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-export function ContentTabs({
-  currentPlan,
+const getFormatIcon = (formatType: string) => {
+  switch (formatType) {
+    case 'photo':
+      return <Camera className="h-5 w-5" />;
+    case 'video':
+      return <Video className="h-5 w-5" />;
+    case 'carousel':
+      return <Image className="h-5 w-5" />;
+    case 'story':
+      return <Play className="h-5 w-5" />;
+    case 'animated':
+      return <Zap className="h-5 w-5" />;
+    default:
+      return <Camera className="h-5 w-5" />;
+  }
+};
+
+export const ContentTabs: React.FC<ContentTabsProps> = ({
   selectedFormat,
   activeTab,
   onTabChange
-}: ContentTabsProps) {
+}) => {
+  const { setup_planning, production_tips, examples } = selectedFormat;
+
   return (
-    <Card className="w-full h-full bg-card border shadow-sm flex flex-col">
-      <CardHeader className="pb-4 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${selectedFormat.bgColor}`}>
-            {selectedFormat.icon}
-          </div>
-          <div>
-            <CardTitle className="text-xl">{currentPlan.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">{currentPlan.description}</p>
-          </div>
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        {getFormatIcon(selectedFormat.format_type)}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{selectedFormat.title}</h1>
+          <p className="text-muted-foreground">{selectedFormat.description}</p>
         </div>
-      </CardHeader>
-      
-      <CardContent className="flex-1 flex flex-col overflow-hidden">
-        <Tabs value={activeTab} onValueChange={onTabChange} className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
-            <TabsTrigger value="setup">Setup & Planning</TabsTrigger>
-            <TabsTrigger value="production">Production Tips</TabsTrigger>
-            <TabsTrigger value="examples">Content Examples</TabsTrigger>
-          </TabsList>
+        <div className="ml-auto flex gap-2">
+          <Badge variant="outline">{selectedFormat.dimensions}</Badge>
+          {selectedFormat.duration && (
+            <Badge variant="outline">{selectedFormat.duration}</Badge>
+          )}
+          <Badge variant="secondary">Target: {selectedFormat.total_required}</Badge>
+        </div>
+      </div>
 
-          <TabsContent value="setup" className="mt-6 flex-1 overflow-hidden">
-            <Card className="border bg-muted/20 h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <CheckCircle className="h-5 w-5" />
-                  Setup & Planning Steps
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={onTabChange} className="flex-1 flex flex-col">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="setup" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Setup & Planning
+          </TabsTrigger>
+          <TabsTrigger value="tips" className="flex items-center gap-2">
+            <Lightbulb className="h-4 w-4" />
+            Production Tips
+          </TabsTrigger>
+          <TabsTrigger value="examples" className="flex items-center gap-2">
+            <Camera className="h-4 w-4" />
+            Examples
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="flex-1 overflow-y-auto mt-6">
+          {/* Setup & Planning Tab */}
+          <TabsContent value="setup" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  {setup_planning.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="space-y-4 pr-4">
-                    {currentPlan.setupSteps.map((step, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </div>
-                        <p className="text-sm">{step}</p>
+              <CardContent className="space-y-6">
+                {/* Checklist */}
+                <div>
+                  <h3 className="font-semibold mb-3">Planning Checklist</h3>
+                  <div className="space-y-2">
+                    {setup_planning.checklist.map((item, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                        <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
+
+                {/* Timeline */}
+                <div>
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Timeline
+                  </h3>
+                  <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                    {setup_planning.timeline}
+                  </p>
+                </div>
+
+                {/* Requirements */}
+                <div>
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Technical Requirements
+                  </h3>
+                  <div className="space-y-2">
+                    {setup_planning.requirements.map((requirement, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
+                        {requirement}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="production" className="mt-6 flex-1 overflow-hidden">
-            <Card className="border bg-muted/20 h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Target className="h-5 w-5" />
-                  Production Tips
+          {/* Production Tips Tab */}
+          <TabsContent value="tips" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5 text-yellow-600" />
+                  {production_tips.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="space-y-4 pr-4">
-                    {currentPlan.productionTips.map((tip, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm">{tip}</p>
+              <CardContent className="space-y-6">
+                {/* Tips */}
+                <div>
+                  <h3 className="font-semibold mb-3">Best Practices</h3>
+                  <div className="space-y-2">
+                    {production_tips.tips.map((tip, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2" />
+                        <span className="text-sm">{tip}</span>
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
+
+                {/* Do's and Don'ts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-3 text-green-700">Do's</h3>
+                    <div className="space-y-2">
+                      {production_tips.dosDonts.dos.map((item, index) => (
+                        <div key={index} className="flex items-start gap-2 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-3 text-red-700">Don'ts</h3>
+                    <div className="space-y-2">
+                      {production_tips.dosDonts.donts.map((item, index) => (
+                        <div key={index} className="flex items-start gap-2 text-sm">
+                          <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Equipment */}
+                <div>
+                  <h3 className="font-semibold mb-3">Recommended Equipment</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {production_tips.equipment.map((item, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {item}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="examples" className="mt-6 flex-1 overflow-hidden">
-            <Card className="border bg-muted/20 h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <BookOpen className="h-5 w-5" />
-                  Content Examples
+          {/* Examples Tab */}
+          <TabsContent value="examples" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5 text-blue-600" />
+                  {examples.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
-                    {currentPlan.examples.map((example, index) => (
-                      <div key={index} className="p-4 border rounded-lg bg-background">
-                        <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center relative group">
-                          {/* Upload Area for Examples */}
-                          <div className="absolute inset-0 border-2 border-dashed border-muted rounded-lg bg-muted/20 hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2">
-                            <Upload className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <div className="text-center">
-                              <p className="text-xs font-medium text-foreground">Add Example Content</p>
-                              <p className="text-xs text-muted-foreground">Image or text</p>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-sm font-medium mb-3">{example}</p>
-                        
-                        {/* Action Buttons for Examples */}
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex-1 text-xs">
-                            <ImageIcon className="h-3 w-3 mr-1" />
-                            Add Image
-                          </Button>
-                          <Button variant="outline" size="sm" className="flex-1 text-xs">
-                            <FileText className="h-3 w-3 mr-1" />
-                            Add Text
-                          </Button>
-                        </div>
+              <CardContent className="space-y-6">
+                {/* Good Examples */}
+                <div>
+                  <h3 className="font-semibold mb-3 text-green-700">Good Examples</h3>
+                  <div className="space-y-2">
+                    {examples.descriptions.map((example, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2" />
+                        <span className="text-sm">{example}</span>
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
+
+                {/* Common Mistakes */}
+                <div>
+                  <h3 className="font-semibold mb-3 text-red-700">Common Mistakes to Avoid</h3>
+                  <div className="space-y-2">
+                    {examples.commonMistakes.map((mistake, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{mistake}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        </div>
+      </Tabs>
+    </div>
   );
-}
+};
