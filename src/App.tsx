@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import ContentLibrary from "./pages/ContentLibrary";
 import Assignments from "./pages/Assignments";
 import Submit from "./pages/Submit";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 // Layouts
@@ -48,7 +49,7 @@ const App = () => (
               <Route path="submit" element={<Submit />} />
               <Route path="calendar" element={<div>Calendar - Coming Soon</div>} />
               <Route path="settings" element={<div>Settings - Coming Soon</div>} />
-              <Route path="admin" element={<div>Admin Panel - Coming Soon</div>} />
+              <Route path="admin" element={<AdminPanel />} />
               <Route path="admin/gyms" element={<div>All Gyms - Coming Soon</div>} />
             </Route>
             <Route path="*" element={<NotFound />} />

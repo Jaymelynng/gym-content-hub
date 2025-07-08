@@ -52,6 +52,8 @@ export type Database = {
           admin_notes: string | null
           assigned_by_admin: string
           assigned_to_gym_id: string | null
+          assignment_type: string | null
+          content_requirements: Json | null
           created_at: string | null
           custom_description: string | null
           custom_title: string | null
@@ -68,6 +70,8 @@ export type Database = {
           admin_notes?: string | null
           assigned_by_admin: string
           assigned_to_gym_id?: string | null
+          assignment_type?: string | null
+          content_requirements?: Json | null
           created_at?: string | null
           custom_description?: string | null
           custom_title?: string | null
@@ -84,6 +88,8 @@ export type Database = {
           admin_notes?: string | null
           assigned_by_admin?: string
           assigned_to_gym_id?: string | null
+          assignment_type?: string | null
+          content_requirements?: Json | null
           created_at?: string | null
           custom_description?: string | null
           custom_title?: string | null
@@ -112,6 +118,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      assignment_drafts: {
+        Row: {
+          assignment_type: string | null
+          content_examples: Json | null
+          content_requirements: Json | null
+          created_at: string | null
+          created_by_admin: string
+          description: string | null
+          file_requirements: string | null
+          id: string
+          production_tips: string | null
+          setup_planning: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignment_type?: string | null
+          content_examples?: Json | null
+          content_requirements?: Json | null
+          created_at?: string | null
+          created_by_admin: string
+          description?: string | null
+          file_requirements?: string | null
+          id?: string
+          production_tips?: string | null
+          setup_planning?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignment_type?: string | null
+          content_examples?: Json | null
+          content_requirements?: Json | null
+          created_at?: string | null
+          created_by_admin?: string
+          description?: string | null
+          file_requirements?: string | null
+          id?: string
+          production_tips?: string | null
+          setup_planning?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       assignment_submissions: {
         Row: {
@@ -179,34 +233,46 @@ export type Database = {
       assignment_templates: {
         Row: {
           clips_required: number | null
+          content_examples: Json | null
+          content_requirements: Json | null
           created_at: string | null
           created_by_admin: string
           description: string
           formats_required: string[]
           id: number
           priority: string | null
+          production_tips: string | null
+          setup_planning: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
           clips_required?: number | null
+          content_examples?: Json | null
+          content_requirements?: Json | null
           created_at?: string | null
           created_by_admin: string
           description: string
           formats_required: string[]
           id?: number
           priority?: string | null
+          production_tips?: string | null
+          setup_planning?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
           clips_required?: number | null
+          content_examples?: Json | null
+          content_requirements?: Json | null
           created_at?: string | null
           created_by_admin?: string
           description?: string
           formats_required?: string[]
           id?: number
           priority?: string | null
+          production_tips?: string | null
+          setup_planning?: string | null
           title?: string
           updated_at?: string | null
         }
