@@ -35,11 +35,7 @@ interface Assignment {
     title: string;
     description: string;
     priority: string;
-    assignment_brief: string;
-    requirements_text: string;
-    submission_guidelines: string;
     formats_required: string[];
-    estimated_hours?: number;
   };
 }
 
@@ -67,16 +63,12 @@ const Assignments = () => {
           due_date,
           status,
           priority_override,
-          special_instructions,
+          
           assignment_templates (
             title,
             description,
             priority,
-            assignment_brief,
-            requirements_text,
-            submission_guidelines,
-            formats_required,
-            estimated_hours
+            formats_required
           )
         `)
         .eq('assigned_to_gym_id', currentGym.id)
@@ -428,17 +420,17 @@ const Assignments = () => {
                             </p>
                           </div>
                           <div>
-                            <h4 className="font-medium mb-2">Estimated Time</h4>
+                            <h4 className="font-medium mb-2">Priority</h4>
                             <p className="text-sm text-muted-foreground">
-                              {assignment.assignment_templates?.estimated_hours || 'Not specified'} hours
+                              {priority}
                             </p>
                           </div>
                         </div>
                         
                         <div>
-                          <h4 className="font-medium mb-2">Assignment Overview</h4>
+                          <h4 className="font-medium mb-2">Description</h4>
                           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                            {assignment.assignment_templates?.assignment_brief || 'No brief provided.'}
+                            {description || 'No description provided.'}
                           </p>
                         </div>
 
@@ -455,9 +447,9 @@ const Assignments = () => {
 
                     <TabsContent value="requirements" className="space-y-4">
                       <div>
-                        <h4 className="font-medium mb-2">Technical Requirements</h4>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                          {assignment.assignment_templates?.requirements_text || 'No specific requirements provided.'}
+                        <h4 className="font-medium mb-2">Content Requirements</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Create engaging content following the specified formats below.
                         </p>
                       </div>
                       
@@ -477,8 +469,8 @@ const Assignments = () => {
                     <TabsContent value="submission" className="space-y-4">
                       <div>
                         <h4 className="font-medium mb-2">Submission Process</h4>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                          {assignment.assignment_templates?.submission_guidelines || 'Standard submission process applies.'}
+                        <p className="text-sm text-muted-foreground">
+                          Upload your content using the buttons below. Submit when ready for review.
                         </p>
                       </div>
 

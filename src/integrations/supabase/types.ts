@@ -49,12 +49,9 @@ export type Database = {
       }
       assignment_distributions: {
         Row: {
-          acknowledged_at: string | null
           admin_notes: string | null
           assigned_by_admin: string
           assigned_to_gym_id: string | null
-          collection_period: unknown | null
-          completed_at: string | null
           created_at: string | null
           custom_description: string | null
           custom_title: string | null
@@ -62,22 +59,15 @@ export type Database = {
           extended_due_date: string | null
           id: number
           priority_override: string | null
-          reminder_sent_at: string | null
-          reviewed_at: string | null
-          special_instructions: string | null
-          started_at: string | null
           status: string | null
           submitted_at: string | null
           template_id: number | null
           updated_at: string | null
         }
         Insert: {
-          acknowledged_at?: string | null
           admin_notes?: string | null
           assigned_by_admin: string
           assigned_to_gym_id?: string | null
-          collection_period?: unknown | null
-          completed_at?: string | null
           created_at?: string | null
           custom_description?: string | null
           custom_title?: string | null
@@ -85,22 +75,15 @@ export type Database = {
           extended_due_date?: string | null
           id?: number
           priority_override?: string | null
-          reminder_sent_at?: string | null
-          reviewed_at?: string | null
-          special_instructions?: string | null
-          started_at?: string | null
           status?: string | null
           submitted_at?: string | null
           template_id?: number | null
           updated_at?: string | null
         }
         Update: {
-          acknowledged_at?: string | null
           admin_notes?: string | null
           assigned_by_admin?: string
           assigned_to_gym_id?: string | null
-          collection_period?: unknown | null
-          completed_at?: string | null
           created_at?: string | null
           custom_description?: string | null
           custom_title?: string | null
@@ -108,10 +91,6 @@ export type Database = {
           extended_due_date?: string | null
           id?: number
           priority_override?: string | null
-          reminder_sent_at?: string | null
-          reviewed_at?: string | null
-          special_instructions?: string | null
-          started_at?: string | null
           status?: string | null
           submitted_at?: string | null
           template_id?: number | null
@@ -136,76 +115,46 @@ export type Database = {
       }
       assignment_submissions: {
         Row: {
-          admin_feedback: string | null
           approved_at: string | null
-          approved_by_admin: string | null
           assignment_id: number | null
           created_at: string | null
-          file_metadata: Json | null
-          final_approval: boolean | null
           gym_id: string | null
           id: number
-          quality_notes: string | null
-          quality_score: number | null
-          resubmission_count: number | null
           reviewed_at: string | null
-          revision_notes: string | null
-          revision_requested: boolean | null
           selected_formats: string[]
           submission_notes: string | null
           submission_status: string | null
           submitted_at: string | null
-          technical_notes: string | null
           updated_at: string | null
           upload_progress: Json | null
           uploaded_files: Json | null
         }
         Insert: {
-          admin_feedback?: string | null
           approved_at?: string | null
-          approved_by_admin?: string | null
           assignment_id?: number | null
           created_at?: string | null
-          file_metadata?: Json | null
-          final_approval?: boolean | null
           gym_id?: string | null
           id?: number
-          quality_notes?: string | null
-          quality_score?: number | null
-          resubmission_count?: number | null
           reviewed_at?: string | null
-          revision_notes?: string | null
-          revision_requested?: boolean | null
           selected_formats: string[]
           submission_notes?: string | null
           submission_status?: string | null
           submitted_at?: string | null
-          technical_notes?: string | null
           updated_at?: string | null
           upload_progress?: Json | null
           uploaded_files?: Json | null
         }
         Update: {
-          admin_feedback?: string | null
           approved_at?: string | null
-          approved_by_admin?: string | null
           assignment_id?: number | null
           created_at?: string | null
-          file_metadata?: Json | null
-          final_approval?: boolean | null
           gym_id?: string | null
           id?: number
-          quality_notes?: string | null
-          quality_score?: number | null
-          resubmission_count?: number | null
           reviewed_at?: string | null
-          revision_notes?: string | null
-          revision_requested?: boolean | null
           selected_formats?: string[]
           submission_notes?: string | null
           submission_status?: string | null
           submitted_at?: string | null
-          technical_notes?: string | null
           updated_at?: string | null
           upload_progress?: Json | null
           uploaded_files?: Json | null
@@ -229,61 +178,37 @@ export type Database = {
       }
       assignment_templates: {
         Row: {
-          assignment_brief: string
-          class_camp_split: Json | null
+          clips_required: number | null
           created_at: string | null
           created_by_admin: string
           description: string
-          estimated_hours: number | null
-          file_requirements: Json | null
-          formats_available: string[] | null
           formats_required: string[]
           id: number
           priority: string | null
-          requirements_text: string
-          submission_guidelines: string
           title: string
           updated_at: string | null
-          upload_specifications: Json
-          video_photo_split: Json | null
         }
         Insert: {
-          assignment_brief: string
-          class_camp_split?: Json | null
+          clips_required?: number | null
           created_at?: string | null
           created_by_admin: string
           description: string
-          estimated_hours?: number | null
-          file_requirements?: Json | null
-          formats_available?: string[] | null
           formats_required: string[]
           id?: number
           priority?: string | null
-          requirements_text: string
-          submission_guidelines: string
           title: string
           updated_at?: string | null
-          upload_specifications: Json
-          video_photo_split?: Json | null
         }
         Update: {
-          assignment_brief?: string
-          class_camp_split?: Json | null
+          clips_required?: number | null
           created_at?: string | null
           created_by_admin?: string
           description?: string
-          estimated_hours?: number | null
-          file_requirements?: Json | null
-          formats_available?: string[] | null
           formats_required?: string[]
           id?: number
           priority?: string | null
-          requirements_text?: string
-          submission_guidelines?: string
           title?: string
           updated_at?: string | null
-          upload_specifications?: Json
-          video_photo_split?: Json | null
         }
         Relationships: []
       }
