@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 // Pages
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import ContentLibrary from "./pages/ContentLibrary";
 import Assignments from "./pages/Assignments";
 import NotFound from "./pages/NotFound";
@@ -40,7 +41,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route path="dashboard" element={<ContentLibrary />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="content-library" element={<ContentLibrary />} />
               <Route path="assignments" element={<Assignments />} />
               <Route path="submit" element={<div>Submit Work - Coming Soon</div>} />
               <Route path="calendar" element={<div>Calendar - Coming Soon</div>} />
