@@ -25,6 +25,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+// Admin redirect component
+const AdminRedirect = () => {
+  const { isAdmin } = useAuth();
+  return <Navigate to={isAdmin ? "/admin" : "/dashboard"} replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -34,7 +40,11 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <AdminRedirect />
+              </ProtectedRoute>
+            } />
             <Route
               path="/*"
               element={
